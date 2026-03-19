@@ -1,14 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient, createAdminClient } from '@/lib/supabase/server';
-
-async function verifyAdmin() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return null;
-  const { data: profile } = await supabase
-    .from('admin_profiles').select('role').eq('id', user.id).single();
-  return profile ? user : null;
-}
+import { createAdminClient } from '@/lib/supabase/server';
+import { verifyAdmin } from '@/lib/auth';
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const user = await verifyAdmin();

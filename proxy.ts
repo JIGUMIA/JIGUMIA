@@ -23,27 +23,28 @@ export async function proxy(req: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser();
 
-  // ── /login 페이지: 이미 로그인 시 대시보드로 ──────────
-  if (pathname === '/login') {
-    if (user) {
-      return NextResponse.redirect(new URL('/dashboard', req.url));
-    }
-    return res;
-  }
-
-  // ── 보호된 라우트: 미인증 시 로그인으로 ─────────────
+  // ── 비로그인: 보호 라우트 → 로그인으로, /login은 통과 ─
   if (!user) {
+    if (pathname === '/login') return res;
     return NextResponse.redirect(new URL('/login', req.url));
   }
 
-  // ── admin role 검증 ──────────────────────────────────
+  // ── 로그인 상태: admin role 확인 ─────────────────────
   const { data: profile } = await supabase
     .from('admin_profiles')
     .select('role')
     .eq('id', user.id)
     .single();
 
-  if (!profile || !['admin', 'super_admin'].includes(profile.role)) {
+  const isAdmin = profile && ['admin', 'super_admin'].includes(profile.role);
+
+  // /login 접근 시: 관리자면 대시보드로, 아니면 로그인 페이지 그대로 표시
+  if (pathname === '/login') {
+    if (isAdmin) return NextResponse.redirect(new URL('/dashboard', req.url));
+    return res; // 권한 없음 — 무한루프 방지, 로그인 페이지에서 에러 표시
+  }
+
+  if (!isAdmin) {
     console.warn(`[AUTH] Unauthorized access attempt: ${user.id.slice(0, 8)}***`);
     return NextResponse.redirect(new URL('/login?error=unauthorized', req.url));
   }
