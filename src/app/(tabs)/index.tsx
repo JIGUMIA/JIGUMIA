@@ -241,7 +241,9 @@ export default function HomeScreen() {
                 backgroundColor: '#EF5350',
               }} />
             </View>
-            <Ionicons name="search-outline" size={24} color="#1E1B4B" />
+            <TouchableOpacity onPress={() => router.push('/(tabs)/explore')} activeOpacity={0.7}>
+              <Ionicons name="search-outline" size={24} color="#1E1B4B" />
+            </TouchableOpacity>
           </View>
         </View>
 
