@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useSaleStore } from '../../store/saleStore';
+import HomeSkeleton from '../../components/skeletons/HomeSkeleton';
 import { useSheetStore } from '../../store/sheetStore';
 import { SaleEvent } from '../../types';
 import { getToday, getDday } from '../../utils/date';
@@ -203,8 +204,10 @@ function UpcomingRow({
 }
 
 export default function HomeScreen() {
-  const { saleEvents } = useSaleStore();
+  const { saleEvents, loading } = useSaleStore();
   const { openSheet } = useSheetStore();
+
+  if (loading) return <HomeSkeleton />;
 
   const activeSales = saleEvents.filter((e) => e.status === 'active');
   const upcomingSales = saleEvents.filter((e) => e.status === 'upcoming');
