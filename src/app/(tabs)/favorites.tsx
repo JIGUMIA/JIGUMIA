@@ -6,6 +6,7 @@ import { useSaleStore } from '../../store/saleStore';
 import { useFavoriteStore } from '../../store/favoriteStore';
 import { useAuthStore } from '../../store/authStore';
 import { getDday } from '../../utils/date';
+import FavoritesSkeleton from '../../components/skeletons/FavoritesSkeleton';
 
 const FALLBACK = ['#6C63FF', '#EF5350', '#FFA726', '#26A69A', '#EC407A'];
 
@@ -15,10 +16,13 @@ function getBrandColor(color: string | null | undefined, idx: number) {
 
 export default function FavoritesScreen() {
   const { user } = useAuthStore();
-  const { brands, saleEvents } = useSaleStore();
-  const { favoriteIds } = useFavoriteStore();
+  const { brands, saleEvents, loading } = useSaleStore();
+  const { favoriteIds, userId: favoriteStoreUserId } = useFavoriteStore();
 
-  const favoriteBrands = brands.filter((b) => favoriteIds.has(b.id));
+  const favoriteBrands =
+    user && favoriteStoreUserId === user.id
+      ? brands.filter((b) => favoriteIds.has(b.id))
+      : [];
 
   const getUpcomingSales = (brandId: string) =>
     saleEvents.filter(
@@ -41,6 +45,8 @@ export default function FavoritesScreen() {
       </SafeAreaView>
     );
   }
+
+  if (loading) return <FavoritesSkeleton />;
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#EEEDF8' }}>
