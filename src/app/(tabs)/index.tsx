@@ -4,6 +4,7 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
+  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -14,148 +15,215 @@ import { useSheetStore } from '../../store/sheetStore';
 import { SaleEvent } from '../../types';
 import { getDday, getSaleStatusLabel } from '../../utils/date';
 
-const BRAND_CARD_COLORS: Record<string, { bg: string }> = {
-  '올리브영': { bg: '#4CAF50' },
-  '무신사':   { bg: '#5C6BC0' },
-  '29cm':     { bg: '#EC407A' },
-  '쿠팡':     { bg: '#FFA726' },
-  'SSG.COM':  { bg: '#6C63FF' },
-  'H&M':      { bg: '#26A69A' },
-  'JAJU':     { bg: '#8D6E63' },
-};
-const FALLBACK_COLORS = [
-  { bg: '#6C63FF' },
-  { bg: '#EC407A' },
-  { bg: '#FFA726' },
-  { bg: '#26A69A' },
-  { bg: '#4CAF50' },
-];
+const { width: SCREEN_W } = Dimensions.get('window');
+const CARD_GAP = 10;
+const SIDE_PAD = 20;
 
-function getCardColor(brandColor?: string | null, brandName?: string, idx = 0) {
-  if (brandColor) return { bg: brandColor };
-  return BRAND_CARD_COLORS[brandName ?? ''] ?? FALLBACK_COLORS[idx % FALLBACK_COLORS.length];
-}
+const ACCENT = '#FF2D2D';
+const BG = '#FAFAF8';
+const TEXT_PRIMARY = '#111111';
+const TEXT_SECONDARY = '#8E8E93';
+const CARD_BG = '#FFFFFF';
+const SURFACE_DARK = '#1A1A1A';
 
 function getGreeting() {
   const hour = new Date().getHours();
-  if (hour < 12) return '좋은 아침이에요!';
-  if (hour < 18) return '좋은 오후에요!';
-  return '좋은 저녁이에요!';
+  if (hour < 12) return '좋은 아침이에요';
+  if (hour < 18) return '좋은 오후에요';
+  return '좋은 저녁이에요';
 }
 
-function SaleCard({
+/** Featured hero card — first active sale, full width, brand color */
+function FeaturedCard({
   event,
-  colorIdx,
   onPress,
 }: {
   event: SaleEvent;
-  colorIdx: number;
   onPress: () => void;
 }) {
-  const color = getCardColor(event.brand?.color, event.brand?.name, colorIdx);
-  const brandInitial = event.brand?.name?.charAt(0) ?? '?';
-  const statusLabel = getSaleStatusLabel(event.status);
-  const dday = getDday(event.status === 'active' ? event.end_date : event.start_date);
-
-  // Strip brand name prefix from title for subtitle
   const brandName = event.brand?.name ?? '';
-  const subtitle = event.title.startsWith(brandName)
-    ? event.title.slice(brandName.length).trim()
-    : event.title;
-
-  const startSlice = event.start_date.slice(5).replace('-', '/');
-  const endSlice = event.end_date.slice(5).replace('-', '/');
+  const brandColor = event.brand?.color ?? SURFACE_DARK;
+  const dday = getDday(event.status === 'active' ? event.end_date : event.start_date);
+  const startSlice = event.start_date.slice(5).replace('-', '.');
+  const endSlice = event.end_date.slice(5).replace('-', '.');
 
   return (
     <TouchableOpacity
-      activeOpacity={0.88}
+      activeOpacity={0.92}
       onPress={onPress}
       style={{
-        width: '48.5%',
-        backgroundColor: color.bg,
-        borderRadius: 20,
-        marginBottom: 12,
-        padding: 16,
+        backgroundColor: brandColor,
+        borderRadius: 24,
+        padding: 24,
+        marginHorizontal: SIDE_PAD,
+        marginBottom: 20,
+        minHeight: 200,
         overflow: 'hidden',
-        minHeight: 175,
       }}
     >
-      {/* decorative blob */}
+      {/* decorative circles */}
       <View style={{
         position: 'absolute',
-        bottom: -30, right: -20,
-        width: 130, height: 130,
-        borderRadius: 65,
-        backgroundColor: 'rgba(255,255,255,0.12)',
+        top: -40, right: -40,
+        width: 180, height: 180,
+        borderRadius: 90,
+        backgroundColor: 'rgba(255,255,255,0.1)',
+      }} />
+      <View style={{
+        position: 'absolute',
+        bottom: -30, left: -20,
+        width: 120, height: 120,
+        borderRadius: 60,
+        backgroundColor: 'rgba(0,0,0,0.08)',
       }} />
 
-      {/* top row: initial circle + status badge */}
+      {/* status + dday */}
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
         <View style={{
-          width: 38, height: 38, borderRadius: 19,
-          backgroundColor: 'rgba(255,255,255,0.25)',
-          alignItems: 'center', justifyContent: 'center',
-        }}>
-          <Text style={{ color: '#FFFFFF', fontSize: 17, fontWeight: '900' }}>
-            {brandInitial}
-          </Text>
-        </View>
-        <View style={{
-          paddingHorizontal: 8, paddingVertical: 3,
-          backgroundColor: 'rgba(0,0,0,0.22)',
+          paddingHorizontal: 10, paddingVertical: 4,
+          backgroundColor: 'rgba(0,0,0,0.2)',
           borderRadius: 8,
         }}>
-          <Text style={{ color: '#FFFFFF', fontSize: 10, fontWeight: '700' }}>
-            {statusLabel}
+          <Text style={{ color: '#FFFFFF', fontSize: 11, fontWeight: '700' }}>
+            {getSaleStatusLabel(event.status)}
           </Text>
         </View>
+        <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12, fontWeight: '600' }}>
+          {dday}
+        </Text>
       </View>
 
       {/* brand name */}
-      <Text style={{
-        color: '#FFFFFF', fontSize: 16, fontWeight: '800',
-        marginTop: 10,
-      }} numberOfLines={1}>
-        {brandName}
-      </Text>
-
-      {/* subtitle */}
-      <Text style={{
-        color: 'rgba(255,255,255,0.8)', fontSize: 11, fontWeight: '500', marginTop: 1,
-      }} numberOfLines={1}>
-        {subtitle}
-      </Text>
-
-      {/* discount rate */}
-      <Text style={{
-        color: '#FFFFFF', fontSize: 22, fontWeight: '900', marginTop: 10,
-      }}>
-        최대 {event.discount_rate}%
-      </Text>
-
-      {/* bottom: dates + dday */}
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
-        <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 10, fontWeight: '600' }}>
-          {startSlice} ~ {endSlice}
+      <View style={{ marginTop: 24 }}>
+        <Text style={{
+          color: '#FFFFFF', fontSize: 28, fontWeight: '900',
+          letterSpacing: -0.5,
+        }}>
+          {brandName}
         </Text>
-        <Text style={{ color: '#FFFFFF', fontSize: 11, fontWeight: '800' }}>
-          {dday}
+      </View>
+
+      {/* sale title (대신 할인율 자리) */}
+      <Text style={{
+        color: '#FFFFFF', fontSize: 20, fontWeight: '800',
+        marginTop: 12, letterSpacing: -0.3,
+      }} numberOfLines={2}>
+        {event.title}
+      </Text>
+
+      {/* bottom row: dates */}
+      <View style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 20,
+      }}>
+        <Ionicons name="calendar-outline" size={14} color="rgba(255,255,255,0.6)" style={{ marginRight: 6 }} />
+        <Text style={{
+          color: 'rgba(255,255,255,0.6)', fontSize: 13, fontWeight: '600',
+        }}>
+          {startSlice} — {endSlice}
         </Text>
       </View>
     </TouchableOpacity>
   );
 }
 
+/** Compact card for grid — brand color accent */
+function CompactCard({
+  event,
+  onPress,
+  isWide,
+}: {
+  event: SaleEvent;
+  onPress: () => void;
+  isWide?: boolean;
+}) {
+  const brandName = event.brand?.name ?? '';
+  const brandColor = event.brand?.color ?? SURFACE_DARK;
+  const dday = getDday(event.status === 'active' ? event.end_date : event.start_date);
+  const cardWidth = isWide
+    ? SCREEN_W - SIDE_PAD * 2
+    : (SCREEN_W - SIDE_PAD * 2 - CARD_GAP) / 2;
+
+  return (
+    <TouchableOpacity
+      activeOpacity={0.88}
+      onPress={onPress}
+      style={{
+        width: cardWidth,
+        backgroundColor: CARD_BG,
+        borderRadius: 20,
+        padding: 16,
+        marginBottom: CARD_GAP,
+        minHeight: 140,
+        borderWidth: 1,
+        borderColor: '#F0F0F0',
+        overflow: 'hidden',
+      }}
+    >
+      {/* brand color top bar */}
+      <View style={{
+        position: 'absolute', top: 0, left: 0, right: 0,
+        height: 4, backgroundColor: brandColor,
+      }} />
+
+      {/* top: brand initial + dday */}
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 2 }}>
+        <View style={{
+          width: 34, height: 34, borderRadius: 10,
+          backgroundColor: brandColor + '18',
+          borderWidth: 1.5,
+          borderColor: brandColor + '40',
+          alignItems: 'center', justifyContent: 'center',
+        }}>
+          <Text style={{ color: brandColor, fontSize: 14, fontWeight: '800' }}>
+            {brandName.charAt(0)}
+          </Text>
+        </View>
+        <Text style={{ fontSize: 11, fontWeight: '700', color: brandColor }}>
+          {dday}
+        </Text>
+      </View>
+
+      {/* brand name */}
+      <Text style={{
+        color: TEXT_PRIMARY, fontSize: 15, fontWeight: '800',
+        marginTop: 12,
+      }} numberOfLines={1}>
+        {brandName}
+      </Text>
+
+      {/* sale title */}
+      <Text style={{
+        color: TEXT_SECONDARY, fontSize: 12, fontWeight: '500',
+        marginTop: 2,
+      }} numberOfLines={2}>
+        {event.title}
+      </Text>
+
+      {/* date range */}
+      <View style={{
+        flexDirection: 'row', alignItems: 'center',
+        marginTop: 10,
+      }}>
+        <Ionicons name="calendar-outline" size={11} color={TEXT_SECONDARY} style={{ marginRight: 4 }} />
+        <Text style={{ fontSize: 11, fontWeight: '600', color: TEXT_SECONDARY }}>
+          {event.start_date.slice(5).replace('-', '.')} — {event.end_date.slice(5).replace('-', '.')}
+        </Text>
+      </View>
+    </TouchableOpacity>
+  );
+}
+
+/** Upcoming sale row — brand color accent */
 function UpcomingRow({
   event,
-  colorIdx,
   onPress,
 }: {
   event: SaleEvent;
-  colorIdx: number;
   onPress: () => void;
 }) {
-  const color = getCardColor(event.brand?.color, event.brand?.name, colorIdx);
+  const brandColor = event.brand?.color ?? SURFACE_DARK;
   const dday = getDday(event.start_date);
 
   return (
@@ -165,49 +233,52 @@ function UpcomingRow({
       style={{
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#FFFFFF',
+        backgroundColor: CARD_BG,
         borderRadius: 16,
         padding: 14,
-        marginBottom: 10,
+        marginBottom: 8,
+        borderWidth: 1,
+        borderColor: '#F0F0F0',
+        overflow: 'hidden',
       }}
     >
-      {/* date badge */}
+      {/* left brand color bar */}
       <View style={{
-        width: 46, height: 52,
-        backgroundColor: color.bg,
-        borderRadius: 12,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginRight: 14,
+        position: 'absolute', left: 0, top: 0, bottom: 0,
+        width: 3, backgroundColor: brandColor,
+        borderTopLeftRadius: 16, borderBottomLeftRadius: 16,
+      }} />
+
+      {/* brand initial */}
+      <View style={{
+        width: 40, height: 40, borderRadius: 12,
+        backgroundColor: brandColor + '14',
+        alignItems: 'center', justifyContent: 'center',
+        marginLeft: 6, marginRight: 14,
       }}>
-        <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 10, fontWeight: '700' }}>
-          {event.start_date.slice(5, 7)}월
-        </Text>
-        <Text style={{ color: '#FFFFFF', fontSize: 20, fontWeight: '900', lineHeight: 24 }}>
-          {event.start_date.slice(8)}
+        <Text style={{ color: brandColor, fontSize: 16, fontWeight: '800' }}>
+          {event.brand?.name?.charAt(0) ?? '?'}
         </Text>
       </View>
 
       {/* info */}
       <View style={{ flex: 1 }}>
-        <Text style={{ fontSize: 14, fontWeight: '800', color: '#111111', marginBottom: 3 }} numberOfLines={1}>
+        <Text style={{ fontSize: 14, fontWeight: '800', color: TEXT_PRIMARY, marginBottom: 2 }} numberOfLines={1}>
           {event.title}
         </Text>
-        <Text style={{ fontSize: 11, color: '#9CA3AF', fontWeight: '500' }}>
-          {event.brand?.name} · 최대 {event.discount_rate}%
+        <Text style={{ fontSize: 12, color: TEXT_SECONDARY, fontWeight: '500' }}>
+          {event.brand?.name} · {event.start_date.slice(5).replace('-', '.')} — {event.end_date.slice(5).replace('-', '.')}
         </Text>
       </View>
 
       {/* dday pill */}
       <View style={{
         paddingHorizontal: 9, paddingVertical: 4,
-        backgroundColor: color.bg + '20',
+        backgroundColor: brandColor + '12',
         borderRadius: 8,
-        borderWidth: 1,
-        borderColor: color.bg + '55',
         marginLeft: 8,
       }}>
-        <Text style={{ fontSize: 12, fontWeight: '900', color: color.bg }}>
+        <Text style={{ fontSize: 12, fontWeight: '800', color: brandColor }}>
           {dday}
         </Text>
       </View>
@@ -223,9 +294,10 @@ export default function HomeScreen() {
 
   const activeSales = saleEvents.filter((e) => e.status === 'active');
   const upcomingSales = saleEvents.filter((e) => e.status === 'upcoming');
+  const [featuredSale, ...restActiveSales] = activeSales;
 
   return (
-    <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: '#F5F3FF' }}>
+    <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: BG }}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 120 }}
@@ -235,72 +307,82 @@ export default function HomeScreen() {
           flexDirection: 'row',
           alignItems: 'flex-start',
           justifyContent: 'space-between',
-          paddingHorizontal: 20,
+          paddingHorizontal: SIDE_PAD,
           paddingTop: 16,
-          paddingBottom: 20,
+          paddingBottom: 24,
         }}>
           <View>
-            <Text style={{ fontSize: 13, color: '#9CA3AF', fontWeight: '500' }}>
+            <Text style={{ fontSize: 13, color: TEXT_SECONDARY, fontWeight: '500' }}>
               {getGreeting()}
             </Text>
-            <Text style={{ fontSize: 26, fontWeight: '900', color: '#111111', marginTop: 2 }}>
-              지금이야! 🎁
+            <Text style={{
+              fontSize: 28, fontWeight: '900', color: TEXT_PRIMARY,
+              marginTop: 2, letterSpacing: -0.5,
+            }}>
+              지금이야!
             </Text>
           </View>
-          <View style={{ flexDirection: 'row', alignItems: 'center', paddingTop: 4, gap: 12 }}>
-            <View style={{ position: 'relative' }}>
-              <TouchableOpacity style={{
-                width: 38, height: 38, borderRadius: 19,
-                backgroundColor: 'rgba(255,255,255,0.8)',
-                alignItems: 'center', justifyContent: 'center',
-              }}>
-                <Ionicons name="notifications-outline" size={20} color="#111111" />
-                <View style={{
-                  position: 'absolute', top: 8, right: 8,
-                  width: 7, height: 7, borderRadius: 3.5,
-                  backgroundColor: '#FF2D2D',
-                  borderWidth: 1, borderColor: '#F5F3FF',
-                }} />
-              </TouchableOpacity>
-            </View>
+          <View style={{ flexDirection: 'row', alignItems: 'center', paddingTop: 4, gap: 10 }}>
+            <TouchableOpacity style={{
+              width: 40, height: 40, borderRadius: 20,
+              backgroundColor: CARD_BG,
+              alignItems: 'center', justifyContent: 'center',
+              borderWidth: 1, borderColor: '#F0F0F0',
+            }}>
+              <Ionicons name="notifications-outline" size={20} color={TEXT_PRIMARY} />
+              <View style={{
+                position: 'absolute', top: 9, right: 9,
+                width: 6, height: 6, borderRadius: 3,
+                backgroundColor: ACCENT,
+              }} />
+            </TouchableOpacity>
             <TouchableOpacity
               onPress={() => router.push('/(tabs)/explore')}
               activeOpacity={0.7}
               style={{
-                width: 38, height: 38, borderRadius: 19,
-                backgroundColor: 'rgba(255,255,255,0.8)',
+                width: 40, height: 40, borderRadius: 20,
+                backgroundColor: CARD_BG,
                 alignItems: 'center', justifyContent: 'center',
+                borderWidth: 1, borderColor: '#F0F0F0',
               }}
             >
-              <Ionicons name="search-outline" size={20} color="#111111" />
+              <Ionicons name="search-outline" size={20} color={TEXT_PRIMARY} />
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* ── Active Sales ── */}
-        {activeSales.length > 0 && (
-          <View style={{ paddingHorizontal: 20 }}>
+        {/* ── Featured Active Sale ── */}
+        {featuredSale && (
+          <FeaturedCard
+            event={featuredSale}
+            onPress={() => openSheet(featuredSale)}
+          />
+        )}
+
+        {/* ── More Active Sales ── */}
+        {restActiveSales.length > 0 && (
+          <View style={{ paddingHorizontal: SIDE_PAD }}>
             <View style={{
               flexDirection: 'row',
               justifyContent: 'space-between',
               alignItems: 'center',
               marginBottom: 14,
             }}>
-              <Text style={{ fontSize: 16, fontWeight: '800', color: '#111111' }}>
-                🔥 지금 세일 중
+              <Text style={{ fontSize: 17, fontWeight: '800', color: TEXT_PRIMARY }}>
+                진행 중인 세일
               </Text>
               <TouchableOpacity onPress={() => router.push('/sale-list?type=active')}>
-                <Text style={{ fontSize: 13, color: '#6C63FF', fontWeight: '600' }}>전체보기</Text>
+                <Text style={{ fontSize: 13, color: TEXT_SECONDARY, fontWeight: '600' }}>전체보기</Text>
               </TouchableOpacity>
             </View>
 
-            {/* 2-column grid */}
+            {/* Bento-style: first card wide, rest 2-col */}
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
-              {activeSales.map((event, idx) => (
-                <SaleCard
+              {restActiveSales.map((event, idx) => (
+                <CompactCard
                   key={event.id}
                   event={event}
-                  colorIdx={idx}
+                  isWide={restActiveSales.length % 2 !== 0 && idx === 0}
                   onPress={() => openSheet(event)}
                 />
               ))}
@@ -310,34 +392,39 @@ export default function HomeScreen() {
 
         {/* ── Upcoming Sales ── */}
         {upcomingSales.length > 0 && (
-          <View style={{ paddingHorizontal: 20, marginTop: 8 }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-              <Text style={{ fontSize: 16, fontWeight: '800', color: '#111111' }}>
-                🚀 예정된 세일
+          <View style={{ paddingHorizontal: SIDE_PAD, marginTop: 12 }}>
+            <View style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: 14,
+            }}>
+              <Text style={{ fontSize: 17, fontWeight: '800', color: TEXT_PRIMARY }}>
+                다가오는 세일
               </Text>
               <TouchableOpacity onPress={() => router.push('/sale-list?type=upcoming')}>
-                <Text style={{ fontSize: 13, color: '#6C63FF', fontWeight: '600' }}>전체보기</Text>
+                <Text style={{ fontSize: 13, color: TEXT_SECONDARY, fontWeight: '600' }}>전체보기</Text>
               </TouchableOpacity>
             </View>
 
-            {upcomingSales.map((event, idx) => (
+            {upcomingSales.map((event) => (
               <UpcomingRow
                 key={event.id}
                 event={event}
-                colorIdx={idx}
                 onPress={() => openSheet(event)}
               />
             ))}
           </View>
         )}
 
+        {/* ── Empty State ── */}
         {activeSales.length === 0 && upcomingSales.length === 0 && (
           <View style={{ alignItems: 'center', paddingTop: 80, paddingHorizontal: 40 }}>
-            <Text style={{ fontSize: 40, marginBottom: 16 }}>🛒</Text>
-            <Text style={{ fontSize: 16, color: '#111111', fontWeight: '800', marginBottom: 6 }}>
+            <Ionicons name="bag-outline" size={48} color={TEXT_SECONDARY} style={{ marginBottom: 16 }} />
+            <Text style={{ fontSize: 17, color: TEXT_PRIMARY, fontWeight: '800', marginBottom: 6 }}>
               세일 정보가 없어요
             </Text>
-            <Text style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', lineHeight: 19 }}>
+            <Text style={{ fontSize: 13, color: TEXT_SECONDARY, textAlign: 'center', lineHeight: 19 }}>
               곧 새로운 세일이 등록될 예정이에요
             </Text>
           </View>

@@ -6,6 +6,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '../../store/authStore';
 import { supabase } from '../../services/supabase';
 
+const ACCENT = '#FF2D2D';
+const BG = '#FAFAF8';
+const TEXT_PRIMARY = '#111111';
+const TEXT_SECONDARY = '#8E8E93';
+const CARD_BG = '#FFFFFF';
+const SURFACE_DARK = '#1A1A1A';
+
 const MENU_ITEMS = [
   { icon: 'notifications-outline' as const, label: '알림 설정' },
   { icon: 'list-outline' as const, label: '알림 내역' },
@@ -63,101 +70,72 @@ export default function MyPageScreen() {
     : '?';
 
   return (
-    <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
+    <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: BG }}>
       {/* header */}
-      <View style={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 12 }}>
-        <Text style={{ fontSize: 13, color: '#9CA3AF', fontWeight: '600', letterSpacing: 0.5, textTransform: 'uppercase' }}>
-          나의
-        </Text>
-        <Text style={{ fontSize: 26, fontWeight: '900', color: '#1E1B4B', marginTop: 2 }}>
+      <View style={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 16 }}>
+        <Text style={{ fontSize: 28, fontWeight: '900', color: TEXT_PRIMARY, letterSpacing: -0.5 }}>
           마이페이지
         </Text>
       </View>
 
       {/* Profile card */}
       <View style={{
-        marginHorizontal: 20, marginTop: 4,
-        backgroundColor: '#FFFFFF',
-        borderRadius: 24,
+        marginHorizontal: 20,
+        backgroundColor: SURFACE_DARK,
+        borderRadius: 20,
         padding: 20,
         overflow: 'hidden',
-        borderWidth: 1,
-        borderColor: 'rgba(108,99,255,0.15)',
       }}>
-        {/* top accent bar */}
-        <View style={{
-          position: 'absolute', top: 0, left: 0, right: 0,
-          height: 3, backgroundColor: '#6C63FF',
-          borderTopLeftRadius: 24, borderTopRightRadius: 24,
-        }} />
-
-        {/* glow blob */}
+        {/* decorative circle */}
         <View style={{
           position: 'absolute', top: -30, right: -30,
-          width: 130, height: 130, borderRadius: 65,
-          backgroundColor: '#6C63FF', opacity: 0.06,
+          width: 120, height: 120, borderRadius: 60,
+          backgroundColor: ACCENT, opacity: 0.08,
         }} />
 
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <View style={{
-            width: 58, height: 58, borderRadius: 18,
-            backgroundColor: 'rgba(108,99,255,0.1)',
-            borderWidth: 1.5, borderColor: 'rgba(108,99,255,0.25)',
+            width: 52, height: 52, borderRadius: 16,
+            backgroundColor: 'rgba(255,255,255,0.12)',
             alignItems: 'center', justifyContent: 'center',
             marginRight: 16,
           }}>
             {user
-              ? <Text style={{ color: '#6C63FF', fontSize: 24, fontWeight: '900' }}>{initials}</Text>
-              : <Ionicons name="person" size={26} color="rgba(108,99,255,0.4)" />
+              ? <Text style={{ color: '#FFFFFF', fontSize: 22, fontWeight: '900' }}>{initials}</Text>
+              : <Ionicons name="person" size={24} color="rgba(255,255,255,0.4)" />
             }
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 17, fontWeight: '800', color: '#1E1B4B' }}>
+            <Text style={{ fontSize: 18, fontWeight: '800', color: '#FFFFFF' }}>
               {user ? (user.user_metadata?.full_name ?? '사용자') : '로그인이 필요해요'}
             </Text>
-            <Text style={{ fontSize: 12, color: '#9CA3AF', marginTop: 4, fontWeight: '500' }}>
+            <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginTop: 3, fontWeight: '500' }}>
               {user ? user.email : '관심 브랜드와 알림을 이용하세요'}
             </Text>
           </View>
-          {user && (
-            <View style={{
-              paddingHorizontal: 8, paddingVertical: 4,
-              backgroundColor: 'rgba(108,99,255,0.08)',
-              borderRadius: 8,
-              borderWidth: 1, borderColor: 'rgba(108,99,255,0.25)',
-            }}>
-              <Text style={{ fontSize: 10, fontWeight: '800', color: '#6C63FF', letterSpacing: 0.5 }}>
-                멤버
-              </Text>
-            </View>
-          )}
         </View>
       </View>
 
       {/* Menu */}
       <View style={{
         marginHorizontal: 20, marginTop: 16,
-        backgroundColor: '#F3F4F6',
-        borderRadius: 24,
+        backgroundColor: CARD_BG,
+        borderRadius: 20,
         overflow: 'hidden',
+        borderWidth: 1,
+        borderColor: '#F0F0F0',
       }}>
-        {/* top accent bar */}
-        <View style={{
-          height: 3, backgroundColor: '#6C63FF',
-          borderTopLeftRadius: 24, borderTopRightRadius: 24,
-        }} />
-
         {user ? (
           <>
             {MENU_ITEMS.map((item, idx) => (
               <View key={item.label}>
                 <MenuItem icon={item.icon} label={item.label} onPress={() => {}} />
                 {idx < MENU_ITEMS.length - 1 && (
-                  <View style={{ height: 1, backgroundColor: '#E5E7EB', marginHorizontal: 20 }} />
+                  <View style={{ height: 1, backgroundColor: '#F5F5F5', marginHorizontal: 20 }} />
                 )}
               </View>
             ))}
-            <View style={{ height: 1, backgroundColor: '#E5E7EB', marginHorizontal: 20 }} />
+            <View style={{ height: 1, backgroundColor: '#F5F5F5', marginHorizontal: 20 }} />
             <MenuItem
               icon="log-out-outline"
               label="로그아웃"
@@ -168,22 +146,23 @@ export default function MyPageScreen() {
         ) : (
           <TouchableOpacity
             style={{
-              paddingVertical: 20,
+              paddingVertical: 18,
               alignItems: 'center',
               flexDirection: 'row',
               justifyContent: 'center',
             }}
             onPress={handleGoogleLogin}
+            activeOpacity={0.8}
           >
-            <Ionicons name="logo-google" size={16} color="#6C63FF" style={{ marginRight: 8 }} />
-            <Text style={{ fontSize: 15, fontWeight: '800', color: '#6C63FF' }}>
+            <Ionicons name="logo-google" size={16} color={TEXT_PRIMARY} style={{ marginRight: 8 }} />
+            <Text style={{ fontSize: 15, fontWeight: '800', color: TEXT_PRIMARY }}>
               Google 계정으로 로그인
             </Text>
           </TouchableOpacity>
         )}
       </View>
 
-      <Text style={{ textAlign: 'center', marginTop: 24, fontSize: 11, color: '#D1D5DB', letterSpacing: 1 }}>
+      <Text style={{ textAlign: 'center', marginTop: 24, fontSize: 11, color: '#D1D1D6', letterSpacing: 0.5 }}>
         JIGUMIA v1.0.0
       </Text>
     </SafeAreaView>
@@ -207,31 +186,31 @@ function MenuItem({
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: 20,
-        paddingVertical: 17,
+        paddingVertical: 16,
       }}
       onPress={onPress}
       activeOpacity={0.7}
     >
       <View style={{
         width: 34, height: 34, borderRadius: 10,
-        backgroundColor: destructive ? '#FFF0F0' : 'rgba(108,99,255,0.08)',
+        backgroundColor: destructive ? ACCENT + '10' : '#F5F5F5',
         alignItems: 'center', justifyContent: 'center',
         marginRight: 14,
       }}>
         <Ionicons
           name={icon}
           size={18}
-          color={destructive ? '#EF5350' : '#6C63FF'}
+          color={destructive ? ACCENT : TEXT_PRIMARY}
         />
       </View>
       <Text style={{
         flex: 1, fontSize: 15, fontWeight: '600',
-        color: destructive ? '#EF5350' : '#1E1B4B',
+        color: destructive ? ACCENT : TEXT_PRIMARY,
       }}>
         {label}
       </Text>
       {!destructive && (
-        <Ionicons name="chevron-forward" size={14} color="#D1D5DB" />
+        <Ionicons name="chevron-forward" size={14} color="#D1D1D6" />
       )}
     </TouchableOpacity>
   );
