@@ -1,76 +1,103 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, FlatList } from 'react-native';
+import React, { useRef, useEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, FlatList, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import BottomSheet from '@gorhom/bottom-sheet';
+import { useTranslation } from 'react-i18next';
 import { useSaleStore } from '../store/saleStore';
-import { useSheetStore } from '../store/sheetStore';
 import { SaleEvent } from '../types';
 import { formatDate, getDday } from '../utils/date';
-
-const FALLBACK_COLOR = '#6C63FF';
+import { useThemeColors } from '../hooks/useColorScheme';
+import SaleDetailSheet from '../components/SaleDetailSheet';
+import ErrorBanner from '../components/ErrorBanner';
 
 function SaleRow({ event, onPress }: { event: SaleEvent; onPress: () => void }) {
-  const color = event.brand?.color ?? FALLBACK_COLOR;
+  const { t } = useTranslation();
+  const colors = useThemeColors();
+  const brandColor = event.brand?.color ?? colors.brand;
   const dday = event.status === 'upcoming'
-    ? `시작 ${getDday(event.start_date)}`
-    : `종료 ${getDday(event.end_date)}`;
+    ? t('start_dday', { dday: getDday(event.start_date) })
+    : t('end_dday', { dday: getDday(event.end_date) });
 
   return (
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={0.75}
+      accessibilityLabel={`${event.brand?.name} ${event.title} ${dday}`}
+      accessibilityRole="button"
       style={{
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#FFFFFF',
+        backgroundColor: colors.card,
         borderRadius: 16,
         padding: 16,
         marginBottom: 10,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.06,
-        shadowRadius: 6,
-        elevation: 2,
+        borderWidth: 1,
+        borderColor: colors.border,
+        overflow: 'hidden',
       }}
     >
+      {/* left color accent */}
+      <View style={{
+        position: 'absolute', left: 0, top: 0, bottom: 0,
+        width: 3, backgroundColor: brandColor,
+        borderTopLeftRadius: 16, borderBottomLeftRadius: 16,
+      }} />
+
       {/* 브랜드 컬러 아이콘 */}
       <View style={{
         width: 44, height: 44, borderRadius: 14,
-        backgroundColor: color,
+        backgroundColor: brandColor + '18',
+        borderWidth: 1.5,
+        borderColor: brandColor + '40',
         alignItems: 'center', justifyContent: 'center',
-        marginRight: 14,
+        marginLeft: 4, marginRight: 14,
       }}>
-        <Text style={{ color: '#FFFFFF', fontSize: 18, fontWeight: '900' }}>
+        <Text style={{ color: brandColor, fontSize: 18, fontWeight: '900' }}>
           {event.brand?.name?.[0] ?? '?'}
         </Text>
       </View>
 
       {/* 정보 */}
       <View style={{ flex: 1 }}>
-        <Text style={{ fontSize: 13, color: '#9CA3AF', fontWeight: '500', marginBottom: 2 }}>
+        <Text style={{ fontSize: 13, color: colors.textSecondary, fontWeight: '500', marginBottom: 2 }}>
           {event.brand?.name}
         </Text>
-        <Text style={{ fontSize: 15, fontWeight: '800', color: '#1E1B4B', marginBottom: 3 }} numberOfLines={1}>
+        <Text style={{ fontSize: 15, fontWeight: '800', color: colors.text, marginBottom: 3 }} numberOfLines={1}>
           {event.title}
         </Text>
-        <Text style={{ fontSize: 12, color: '#9CA3AF' }}>
-          {formatDate(event.start_date)} ~ {formatDate(event.end_date)}
-        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Ionicons name="calendar-outline" size={11} color={colors.textSecondary} style={{ marginRight: 4 }} />
+          <Text style={{ fontSize: 12, color: colors.textSecondary }}>
+            {formatDate(event.start_date)} ~ {formatDate(event.end_date)}
+          </Text>
+        </View>
       </View>
 
-      {/* D-day */}
-      <Text style={{ fontSize: 13, fontWeight: '800', color, marginLeft: 8 }}>
-        {dday}
-      </Text>
+      {/* D-day pill */}
+      <View style={{
+        paddingHorizontal: 9, paddingVertical: 4,
+        backgroundColor: brandColor + '12',
+        borderRadius: 8,
+        marginLeft: 8,
+      }}>
+        <Text style={{ fontSize: 12, fontWeight: '800', color: brandColor }}>
+          {dday}
+        </Text>
+      </View>
     </TouchableOpacity>
   );
 }
 
 export default function SaleListScreen() {
+  const { t } = useTranslation();
+  const colors = useThemeColors();
   const { type } = useLocalSearchParams<{ type: 'active' | 'upcoming' }>();
-  const { saleEvents } = useSaleStore();
-  const { openSheet } = useSheetStore();
+  const { saleEvents, refreshing, refresh, error, clearError } = useSaleStore();
+  const bottomSheetRef = useRef<BottomSheet>(null);
+  const [selectedSale, setSelectedSale] = useState<SaleEvent | null>(null);
 
   const isActive = type === 'active';
 
@@ -78,42 +105,96 @@ export default function SaleListScreen() {
     .filter((e) => e.status === type)
     .sort((a, b) => a.start_date.localeCompare(b.start_date));
 
-  const title = isActive ? '🔥 지금 세일 중' : '📌 예정된 세일';
+  const title = isActive ? t('active_now') : t('upcoming_now');
+
+  useEffect(() => {
+    if (selectedSale) {
+      bottomSheetRef.current?.snapToIndex(0);
+    } else {
+      bottomSheetRef.current?.close();
+    }
+  }, [selectedSale]);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#EEEDF8' }}>
-      {/* 헤더 */}
-      <View style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 16,
-        paddingVertical: 14,
-      }}>
-        <TouchableOpacity onPress={() => router.back()} style={{ marginRight: 12, padding: 4 }}>
-          <Ionicons name="chevron-back" size={24} color="#1E1B4B" />
-        </TouchableOpacity>
-        <Text style={{ fontSize: 20, fontWeight: '900', color: '#1E1B4B' }}>{title}</Text>
-        <Text style={{ marginLeft: 8, fontSize: 14, color: '#9CA3AF', fontWeight: '600' }}>
-          {list.length}개
-        </Text>
-      </View>
-
-      <FlatList
-        data={list}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}
-        renderItem={({ item }) => (
-          <SaleRow event={item} onPress={() => openSheet(item)} />
-        )}
-        ListEmptyComponent={
-          <View style={{ alignItems: 'center', paddingTop: 80 }}>
-            <Text style={{ fontSize: 40 }}>🛒</Text>
-            <Text style={{ fontSize: 16, color: '#9CA3AF', marginTop: 12, fontWeight: '600' }}>
-              세일 정보가 없어요
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <SafeAreaView edges={['top']} style={{ flex: 1 }}>
+        {/* 헤더 */}
+        <View style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          paddingHorizontal: 20,
+          paddingVertical: 14,
+        }}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            accessibilityLabel={t('go_back')}
+            accessibilityRole="button"
+            style={{
+              width: 36, height: 36, borderRadius: 12,
+              backgroundColor: colors.surfaceSecondary,
+              alignItems: 'center', justifyContent: 'center',
+              marginRight: 14,
+            }}
+          >
+            <Ionicons name="chevron-back" size={20} color={colors.text} />
+          </TouchableOpacity>
+          <Text style={{ fontSize: 20, fontWeight: '900', color: colors.text, flex: 1 }}>
+            {title}
+          </Text>
+          <View style={{
+            paddingHorizontal: 10, paddingVertical: 4,
+            backgroundColor: isActive ? colors.accent : colors.brand,
+            borderRadius: 10,
+          }}>
+            <Text style={{ fontSize: 12, fontWeight: '800', color: '#FFFFFF' }}>
+              {t('sale_count', { count: list.length })}
             </Text>
           </View>
-        }
+        </View>
+
+        {error && (
+          <ErrorBanner
+            message={error}
+            onDismiss={clearError}
+            onRetry={refresh}
+          />
+        )}
+
+        <FlatList
+          data={list}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}
+          showsVerticalScrollIndicator={false}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} />}
+          renderItem={({ item }) => (
+            <SaleRow event={item} onPress={() => setSelectedSale(item)} />
+          )}
+          ListEmptyComponent={
+            <View style={{ alignItems: 'center', paddingTop: 80 }}>
+              <View style={{
+                width: 64, height: 64, borderRadius: 20,
+                backgroundColor: colors.surfaceSecondary,
+                alignItems: 'center', justifyContent: 'center',
+                marginBottom: 16,
+              }}>
+                <Ionicons name="bag-outline" size={28} color={colors.textSecondary} />
+              </View>
+              <Text style={{ fontSize: 16, color: colors.text, fontWeight: '700' }}>
+                {t('no_sale_info')}
+              </Text>
+              <Text style={{ fontSize: 13, color: colors.textSecondary, marginTop: 6, textAlign: 'center' }}>
+                {t('no_sales_desc')}
+              </Text>
+            </View>
+          }
+        />
+      </SafeAreaView>
+
+      <SaleDetailSheet
+        ref={bottomSheetRef}
+        sale={selectedSale}
+        onClose={() => setSelectedSale(null)}
       />
-    </SafeAreaView>
+    </View>
   );
 }

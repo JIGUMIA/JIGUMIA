@@ -5,7 +5,10 @@ import {
   ScrollView,
   TouchableOpacity,
   Dimensions,
+  RefreshControl,
 } from 'react-native';
+import ErrorBanner from '../../components/ErrorBanner';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -14,23 +17,17 @@ import HomeSkeleton from '../../components/skeletons/HomeSkeleton';
 import { useSheetStore } from '../../store/sheetStore';
 import { SaleEvent } from '../../types';
 import { getDday, getSaleStatusLabel } from '../../utils/date';
+import { useThemeColors } from '../../hooks/useColorScheme';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 const CARD_GAP = 10;
 const SIDE_PAD = 20;
 
-const ACCENT = '#FF2D2D';
-const BG = '#FAFAF8';
-const TEXT_PRIMARY = '#111111';
-const TEXT_SECONDARY = '#8E8E93';
-const CARD_BG = '#FFFFFF';
-const SURFACE_DARK = '#1A1A1A';
-
-function getGreeting() {
+function getGreeting(t: (key: string) => string) {
   const hour = new Date().getHours();
-  if (hour < 12) return '좋은 아침이에요';
-  if (hour < 18) return '좋은 오후에요';
-  return '좋은 저녁이에요';
+  if (hour < 12) return t('greeting_morning');
+  if (hour < 18) return t('greeting_afternoon');
+  return t('greeting_evening');
 }
 
 /** Featured hero card — first active sale, full width, brand color */
@@ -41,8 +38,9 @@ function FeaturedCard({
   event: SaleEvent;
   onPress: () => void;
 }) {
+  const colors = useThemeColors();
   const brandName = event.brand?.name ?? '';
-  const brandColor = event.brand?.color ?? SURFACE_DARK;
+  const brandColor = event.brand?.color ?? colors.surfaceDark;
   const dday = getDday(event.status === 'active' ? event.end_date : event.start_date);
   const startSlice = event.start_date.slice(5).replace('-', '.');
   const endSlice = event.end_date.slice(5).replace('-', '.');
@@ -51,6 +49,8 @@ function FeaturedCard({
     <TouchableOpacity
       activeOpacity={0.92}
       onPress={onPress}
+      accessibilityLabel={`${brandName} ${event.title}`}
+      accessibilityRole="button"
       style={{
         backgroundColor: brandColor,
         borderRadius: 24,
@@ -138,8 +138,9 @@ function CompactCard({
   onPress: () => void;
   isWide?: boolean;
 }) {
+  const colors = useThemeColors();
   const brandName = event.brand?.name ?? '';
-  const brandColor = event.brand?.color ?? SURFACE_DARK;
+  const brandColor = event.brand?.color ?? colors.surfaceDark;
   const dday = getDday(event.status === 'active' ? event.end_date : event.start_date);
   const cardWidth = isWide
     ? SCREEN_W - SIDE_PAD * 2
@@ -149,15 +150,17 @@ function CompactCard({
     <TouchableOpacity
       activeOpacity={0.88}
       onPress={onPress}
+      accessibilityLabel={`${brandName} ${event.title}`}
+      accessibilityRole="button"
       style={{
         width: cardWidth,
-        backgroundColor: CARD_BG,
+        backgroundColor: colors.card,
         borderRadius: 20,
         padding: 16,
         marginBottom: CARD_GAP,
         minHeight: 140,
         borderWidth: 1,
-        borderColor: '#F0F0F0',
+        borderColor: colors.border,
         overflow: 'hidden',
       }}
     >
@@ -187,7 +190,7 @@ function CompactCard({
 
       {/* brand name */}
       <Text style={{
-        color: TEXT_PRIMARY, fontSize: 15, fontWeight: '800',
+        color: colors.text, fontSize: 15, fontWeight: '800',
         marginTop: 12,
       }} numberOfLines={1}>
         {brandName}
@@ -195,7 +198,7 @@ function CompactCard({
 
       {/* sale title */}
       <Text style={{
-        color: TEXT_SECONDARY, fontSize: 12, fontWeight: '500',
+        color: colors.textSecondary, fontSize: 12, fontWeight: '500',
         marginTop: 2,
       }} numberOfLines={2}>
         {event.title}
@@ -206,8 +209,8 @@ function CompactCard({
         flexDirection: 'row', alignItems: 'center',
         marginTop: 10,
       }}>
-        <Ionicons name="calendar-outline" size={11} color={TEXT_SECONDARY} style={{ marginRight: 4 }} />
-        <Text style={{ fontSize: 11, fontWeight: '600', color: TEXT_SECONDARY }}>
+        <Ionicons name="calendar-outline" size={11} color={colors.textSecondary} style={{ marginRight: 4 }} />
+        <Text style={{ fontSize: 11, fontWeight: '600', color: colors.textSecondary }}>
           {event.start_date.slice(5).replace('-', '.')} — {event.end_date.slice(5).replace('-', '.')}
         </Text>
       </View>
@@ -223,22 +226,25 @@ function UpcomingRow({
   event: SaleEvent;
   onPress: () => void;
 }) {
-  const brandColor = event.brand?.color ?? SURFACE_DARK;
+  const colors = useThemeColors();
+  const brandColor = event.brand?.color ?? colors.surfaceDark;
   const dday = getDday(event.start_date);
 
   return (
     <TouchableOpacity
       activeOpacity={0.82}
       onPress={onPress}
+      accessibilityLabel={`${event.brand?.name} ${event.title}`}
+      accessibilityRole="button"
       style={{
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: CARD_BG,
+        backgroundColor: colors.card,
         borderRadius: 16,
         padding: 14,
         marginBottom: 8,
         borderWidth: 1,
-        borderColor: '#F0F0F0',
+        borderColor: colors.border,
         overflow: 'hidden',
       }}
     >
@@ -263,10 +269,10 @@ function UpcomingRow({
 
       {/* info */}
       <View style={{ flex: 1 }}>
-        <Text style={{ fontSize: 14, fontWeight: '800', color: TEXT_PRIMARY, marginBottom: 2 }} numberOfLines={1}>
+        <Text style={{ fontSize: 14, fontWeight: '800', color: colors.text, marginBottom: 2 }} numberOfLines={1}>
           {event.title}
         </Text>
-        <Text style={{ fontSize: 12, color: TEXT_SECONDARY, fontWeight: '500' }}>
+        <Text style={{ fontSize: 12, color: colors.textSecondary, fontWeight: '500' }}>
           {event.brand?.name} · {event.start_date.slice(5).replace('-', '.')} — {event.end_date.slice(5).replace('-', '.')}
         </Text>
       </View>
@@ -287,7 +293,9 @@ function UpcomingRow({
 }
 
 export default function HomeScreen() {
-  const { saleEvents, loading } = useSaleStore();
+  const colors = useThemeColors();
+  const { t } = useTranslation();
+  const { saleEvents, loading, refreshing, refresh, error, clearError } = useSaleStore();
   const { openSheet } = useSheetStore();
 
   if (loading) return <HomeSkeleton />;
@@ -297,10 +305,13 @@ export default function HomeScreen() {
   const [featuredSale, ...restActiveSales] = activeSales;
 
   return (
-    <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: BG }}>
+    <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: colors.background }}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 120 }}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={colors.brand} />
+        }
       >
         {/* ── Header ── */}
         <View style={{
@@ -312,44 +323,52 @@ export default function HomeScreen() {
           paddingBottom: 24,
         }}>
           <View>
-            <Text style={{ fontSize: 13, color: TEXT_SECONDARY, fontWeight: '500' }}>
-              {getGreeting()}
+            <Text style={{ fontSize: 13, color: colors.textSecondary, fontWeight: '500' }}>
+              {getGreeting(t)}
             </Text>
             <Text style={{
-              fontSize: 28, fontWeight: '900', color: TEXT_PRIMARY,
+              fontSize: 28, fontWeight: '900', color: colors.text,
               marginTop: 2, letterSpacing: -0.5,
             }}>
-              지금이야!
+              {t('app_title')}
             </Text>
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', paddingTop: 4, gap: 10 }}>
-            <TouchableOpacity style={{
-              width: 40, height: 40, borderRadius: 20,
-              backgroundColor: CARD_BG,
-              alignItems: 'center', justifyContent: 'center',
-              borderWidth: 1, borderColor: '#F0F0F0',
-            }}>
-              <Ionicons name="notifications-outline" size={20} color={TEXT_PRIMARY} />
+            <TouchableOpacity
+              accessibilityLabel={t('notification_settings')}
+              accessibilityRole="button"
+              style={{
+                width: 40, height: 40, borderRadius: 20,
+                backgroundColor: colors.card,
+                alignItems: 'center', justifyContent: 'center',
+                borderWidth: 1, borderColor: colors.border,
+              }}
+            >
+              <Ionicons name="notifications-outline" size={20} color={colors.text} />
               <View style={{
                 position: 'absolute', top: 9, right: 9,
                 width: 6, height: 6, borderRadius: 3,
-                backgroundColor: ACCENT,
+                backgroundColor: colors.accent,
               }} />
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() => router.push('/(tabs)/explore')}
+              onPress={() => router.push('/search')}
               activeOpacity={0.7}
+              accessibilityLabel="검색"
+              accessibilityRole="button"
               style={{
                 width: 40, height: 40, borderRadius: 20,
-                backgroundColor: CARD_BG,
+                backgroundColor: colors.card,
                 alignItems: 'center', justifyContent: 'center',
-                borderWidth: 1, borderColor: '#F0F0F0',
+                borderWidth: 1, borderColor: colors.border,
               }}
             >
-              <Ionicons name="search-outline" size={20} color={TEXT_PRIMARY} />
+              <Ionicons name="search-outline" size={20} color={colors.text} />
             </TouchableOpacity>
           </View>
         </View>
+
+        {error && <ErrorBanner message={error} onRetry={refresh} onDismiss={clearError} />}
 
         {/* ── Featured Active Sale ── */}
         {featuredSale && (
@@ -368,11 +387,11 @@ export default function HomeScreen() {
               alignItems: 'center',
               marginBottom: 14,
             }}>
-              <Text style={{ fontSize: 17, fontWeight: '800', color: TEXT_PRIMARY }}>
-                진행 중인 세일
+              <Text style={{ fontSize: 17, fontWeight: '800', color: colors.text }}>
+                {t('active_sales')}
               </Text>
               <TouchableOpacity onPress={() => router.push('/sale-list?type=active')}>
-                <Text style={{ fontSize: 13, color: TEXT_SECONDARY, fontWeight: '600' }}>전체보기</Text>
+                <Text style={{ fontSize: 13, color: colors.textSecondary, fontWeight: '600' }}>{t('view_all')}</Text>
               </TouchableOpacity>
             </View>
 
@@ -399,11 +418,11 @@ export default function HomeScreen() {
               alignItems: 'center',
               marginBottom: 14,
             }}>
-              <Text style={{ fontSize: 17, fontWeight: '800', color: TEXT_PRIMARY }}>
-                다가오는 세일
+              <Text style={{ fontSize: 17, fontWeight: '800', color: colors.text }}>
+                {t('upcoming_sales')}
               </Text>
               <TouchableOpacity onPress={() => router.push('/sale-list?type=upcoming')}>
-                <Text style={{ fontSize: 13, color: TEXT_SECONDARY, fontWeight: '600' }}>전체보기</Text>
+                <Text style={{ fontSize: 13, color: colors.textSecondary, fontWeight: '600' }}>{t('view_all')}</Text>
               </TouchableOpacity>
             </View>
 
@@ -420,12 +439,12 @@ export default function HomeScreen() {
         {/* ── Empty State ── */}
         {activeSales.length === 0 && upcomingSales.length === 0 && (
           <View style={{ alignItems: 'center', paddingTop: 80, paddingHorizontal: 40 }}>
-            <Ionicons name="bag-outline" size={48} color={TEXT_SECONDARY} style={{ marginBottom: 16 }} />
-            <Text style={{ fontSize: 17, color: TEXT_PRIMARY, fontWeight: '800', marginBottom: 6 }}>
-              세일 정보가 없어요
+            <Ionicons name="bag-outline" size={48} color={colors.textSecondary} style={{ marginBottom: 16 }} />
+            <Text style={{ fontSize: 17, color: colors.text, fontWeight: '800', marginBottom: 6 }}>
+              {t('no_sales')}
             </Text>
-            <Text style={{ fontSize: 13, color: TEXT_SECONDARY, textAlign: 'center', lineHeight: 19 }}>
-              곧 새로운 세일이 등록될 예정이에요
+            <Text style={{ fontSize: 13, color: colors.textSecondary, textAlign: 'center', lineHeight: 19 }}>
+              {t('no_sales_desc')}
             </Text>
           </View>
         )}

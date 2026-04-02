@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, FlatList, TouchableOpacity, Linking } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Linking, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useSaleStore } from '../../store/saleStore';
@@ -7,17 +7,15 @@ import { useFavoriteStore } from '../../store/favoriteStore';
 import { useAuthStore } from '../../store/authStore';
 import { getDday } from '../../utils/date';
 import FavoritesSkeleton from '../../components/skeletons/FavoritesSkeleton';
-
-const ACCENT = '#FF2D2D';
-const BG = '#FAFAF8';
-const TEXT_PRIMARY = '#111111';
-const TEXT_SECONDARY = '#8E8E93';
-const CARD_BG = '#FFFFFF';
-const SURFACE_DARK = '#1A1A1A';
+import { useThemeColors } from '../../hooks/useColorScheme';
+import ErrorBanner from '../../components/ErrorBanner';
+import { useTranslation } from 'react-i18next';
 
 export default function FavoritesScreen() {
+  const colors = useThemeColors();
+  const { t } = useTranslation();
   const { user } = useAuthStore();
-  const { brands, saleEvents, loading } = useSaleStore();
+  const { brands, saleEvents, loading, refreshing, refresh, error, clearError } = useSaleStore();
   const { favoriteIds, userId: favoriteStoreUserId } = useFavoriteStore();
 
   const favoriteBrands =
@@ -32,26 +30,26 @@ export default function FavoritesScreen() {
 
   if (!user) {
     return (
-      <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: BG }}>
+      <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: colors.background }}>
         <View style={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 20 }}>
-          <Text style={{ fontSize: 28, fontWeight: '900', color: TEXT_PRIMARY, letterSpacing: -0.5 }}>
-            관심 브랜드
+          <Text style={{ fontSize: 28, fontWeight: '900', color: colors.text, letterSpacing: -0.5 }}>
+            {t('favorites')}
           </Text>
         </View>
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 40 }}>
           <View style={{
             width: 64, height: 64, borderRadius: 20,
-            backgroundColor: ACCENT + '12',
+            backgroundColor: colors.accent + '12',
             alignItems: 'center', justifyContent: 'center',
             marginBottom: 18,
           }}>
-            <Ionicons name="heart-outline" size={28} color={ACCENT} />
+            <Ionicons name="heart-outline" size={28} color={colors.accent} />
           </View>
-          <Text style={{ fontSize: 17, fontWeight: '800', color: TEXT_PRIMARY, marginBottom: 8, textAlign: 'center' }}>
-            로그인이 필요해요
+          <Text style={{ fontSize: 17, fontWeight: '800', color: colors.text, marginBottom: 8, textAlign: 'center' }}>
+            {t('login_required')}
           </Text>
-          <Text style={{ fontSize: 14, color: TEXT_SECONDARY, textAlign: 'center', lineHeight: 20 }}>
-            관심 브랜드를 저장하고{'\n'}세일 알림을 받아보세요
+          <Text style={{ fontSize: 14, color: colors.textSecondary, textAlign: 'center', lineHeight: 20 }}>
+            {t('login_desc')}
           </Text>
         </View>
       </SafeAreaView>
@@ -61,21 +59,26 @@ export default function FavoritesScreen() {
   if (loading) return <FavoritesSkeleton />;
 
   return (
-    <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: BG }}>
+    <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: colors.background }}>
       {/* header */}
       <View style={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 16 }}>
-        <Text style={{ fontSize: 28, fontWeight: '900', color: TEXT_PRIMARY, letterSpacing: -0.5 }}>
-          관심 브랜드
+        <Text style={{ fontSize: 28, fontWeight: '900', color: colors.text, letterSpacing: -0.5 }}>
+          {t('favorites')}
         </Text>
       </View>
+
+      {error && <ErrorBanner message={error} onRetry={refresh} onDismiss={clearError} />}
 
       <FlatList
         data={favoriteBrands}
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 120 }}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={colors.brand} />
+        }
         renderItem={({ item }) => {
-          const brandColor = item.color ?? SURFACE_DARK;
+          const brandColor = item.color ?? colors.surfaceDark;
           const sales = getBrandSales(item.id);
           return (
             <View style={{ marginBottom: 14 }}>
@@ -83,6 +86,8 @@ export default function FavoritesScreen() {
               <TouchableOpacity
                 activeOpacity={0.85}
                 onPress={() => Linking.openURL(item.website_url)}
+                accessibilityLabel={item.name}
+                accessibilityRole="button"
                 style={{
                   backgroundColor: brandColor,
                   borderRadius: 20,
@@ -125,12 +130,12 @@ export default function FavoritesScreen() {
                       borderRadius: 8,
                     }}>
                       <Text style={{ color: '#FFFFFF', fontSize: 11, fontWeight: '800' }}>
-                        {sales.length}개 세일
+                        {t('sales_count', { count: sales.length })}
                       </Text>
                     </View>
                   ) : (
                     <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', fontWeight: '600' }}>
-                      세일 없음
+                      {t('no_sale')}
                     </Text>
                   )}
                 </View>
@@ -142,16 +147,18 @@ export default function FavoritesScreen() {
                 return (
                   <View
                     key={sale.id}
+                    accessibilityLabel={sale.title}
+                    accessibilityRole="button"
                     style={{
                       marginTop: 6, marginLeft: 12,
-                      backgroundColor: CARD_BG,
+                      backgroundColor: colors.card,
                       borderRadius: 14,
                       padding: 12,
                       flexDirection: 'row',
                       alignItems: 'center',
                       overflow: 'hidden',
                       borderWidth: 1,
-                      borderColor: '#F0F0F0',
+                      borderColor: colors.border,
                     }}
                   >
                     {/* left stripe */}
@@ -161,17 +168,17 @@ export default function FavoritesScreen() {
                       borderTopLeftRadius: 14, borderBottomLeftRadius: 14,
                     }} />
                     <View style={{ flex: 1, paddingLeft: 10 }}>
-                      <Text style={{ fontSize: 13, fontWeight: '700', color: TEXT_PRIMARY }}>
+                      <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text }}>
                         {sale.title}
                       </Text>
-                      <Text style={{ fontSize: 11, color: TEXT_SECONDARY, marginTop: 2 }}>
+                      <Text style={{ fontSize: 11, color: colors.textSecondary, marginTop: 2 }}>
                         {sale.start_date.slice(5).replace('-', '.')} ~ {sale.end_date.slice(5).replace('-', '.')}
                       </Text>
                     </View>
                     <View style={{ alignItems: 'flex-end' }}>
                       <View style={{
                         paddingHorizontal: 7, paddingVertical: 3,
-                        backgroundColor: isActive ? ACCENT : brandColor + '14',
+                        backgroundColor: isActive ? colors.accent : brandColor + '14',
                         borderRadius: 7,
                         marginBottom: 3,
                       }}>
@@ -179,10 +186,10 @@ export default function FavoritesScreen() {
                           fontSize: 10, fontWeight: '800',
                           color: isActive ? '#FFFFFF' : brandColor,
                         }}>
-                          {isActive ? '진행 중' : '예정'}
+                          {isActive ? t('status_active') : t('status_upcoming')}
                         </Text>
                       </View>
-                      <Text style={{ fontSize: 10, color: TEXT_SECONDARY, fontWeight: '600' }}>
+                      <Text style={{ fontSize: 10, color: colors.textSecondary, fontWeight: '600' }}>
                         {getDday(isActive ? sale.end_date : sale.start_date)}
                       </Text>
                     </View>
@@ -196,17 +203,17 @@ export default function FavoritesScreen() {
           <View style={{ alignItems: 'center', paddingTop: 60 }}>
             <View style={{
               width: 64, height: 64, borderRadius: 20,
-              backgroundColor: '#F5F5F5',
+              backgroundColor: colors.surfaceSecondary,
               alignItems: 'center', justifyContent: 'center',
               marginBottom: 16,
             }}>
-              <Ionicons name="bookmark-outline" size={28} color={TEXT_SECONDARY} />
+              <Ionicons name="bookmark-outline" size={28} color={colors.textSecondary} />
             </View>
-            <Text style={{ fontSize: 16, color: TEXT_PRIMARY, fontWeight: '700' }}>
-              관심 브랜드를 추가해보세요
+            <Text style={{ fontSize: 16, color: colors.text, fontWeight: '700' }}>
+              {t('add_favorites')}
             </Text>
-            <Text style={{ fontSize: 13, color: TEXT_SECONDARY, marginTop: 6, textAlign: 'center' }}>
-              탐색 탭에서 브랜드 하트를 눌러보세요
+            <Text style={{ fontSize: 13, color: colors.textSecondary, marginTop: 6, textAlign: 'center' }}>
+              {t('add_favorites_desc')}
             </Text>
           </View>
         }
