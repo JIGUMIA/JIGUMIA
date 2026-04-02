@@ -14,7 +14,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **JIGUMIA (지구미아)** — "지금이야" (Now's the time!) — is a brand discount calendar mobile app for Korean shoppers. Users can track and discover sales from brands like Olive Young, Musinsa, 29cm, Coupang, SSG.com, H&M, and JAJU in one place.
 
-**Status**: Planning phase. The PRD is in `JIGUMIA_기획서.md`. No source code yet.
+**Status**: MVP implemented (Phase 1–3 complete). Source code in `src/`. PRD in `JIGUMIA_기획서.md`.
 
 ## Tech Stack
 
@@ -89,7 +89,7 @@ User taps Google Login
 
 ### Design System
 
-- **Colors**: `#111111` (Black), `#FF2D2D` (Red), `#FAFAF8` (Off-White)
+- **Colors**: `#6C63FF` (Brand Purple — primary), `#111111` (Black), `#FF2D2D` (Red — sale status accent), `#FAFAF8` (Off-White)
 - **Fonts**: DM Sans (English), Pretendard (Korean)
 - **Layout**: 375px base width (iPhone-first), dark/light mode support
 - **Logo**: "J" lettermark, 30° tilt, 2 red dot accents diagonal

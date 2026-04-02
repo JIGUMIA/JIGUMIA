@@ -11,6 +11,7 @@ import { useSaleStore } from '../store/saleStore';
 import CalendarSkeleton from './skeletons/CalendarSkeleton';
 import { getMonthDates, getToday } from '../utils/date';
 import { SaleEvent, Category } from '../types';
+import { useThemeColors } from '../hooks/useColorScheme';
 
 // 브랜드 color 값으로 bg(파스텔), text(원색) 생성
 function hexToEventColor(hex: string | null | undefined): { bg: string; text: string } {
@@ -78,6 +79,7 @@ interface MonthSectionProps {
 }
 
 const MonthSection = React.memo(({ year, month, today, events, onSalePress }: MonthSectionProps) => {
+  const colors = useThemeColors();
   const dates = useMemo(() => getMonthDates(year, month), [year, month]);
   const weeks = useMemo(() => chunkIntoWeeks(dates), [dates]);
 
@@ -91,13 +93,13 @@ const MonthSection = React.memo(({ year, month, today, events, onSalePress }: Mo
         flexDirection: 'row',
         alignItems: 'center',
       }}>
-        <Text style={{ fontSize: 17, fontWeight: '800', color: '#1E1B4B' }}>
+        <Text style={{ fontSize: 17, fontWeight: '800', color: colors.text }}>
           {year}년 {month + 1}월
         </Text>
         {year === parseInt(today.slice(0, 4)) && month === parseInt(today.slice(5, 7)) - 1 && (
           <View style={{
             marginLeft: 8,
-            backgroundColor: '#6C63FF',
+            backgroundColor: colors.brand,
             borderRadius: 8,
             paddingHorizontal: 8,
             paddingVertical: 2,
@@ -117,7 +119,7 @@ const MonthSection = React.memo(({ year, month, today, events, onSalePress }: Mo
             key={weekIdx}
             style={{
               borderBottomWidth: isLast ? 0 : 1,
-              borderBottomColor: '#F3F4F6',
+              borderBottomColor: colors.surfaceSecondary,
             }}
           >
             {/* 날짜 행 */}
@@ -134,7 +136,7 @@ const MonthSection = React.memo(({ year, month, today, events, onSalePress }: Mo
                       <View style={{
                         width: 30, height: 30, borderRadius: 15,
                         alignItems: 'center', justifyContent: 'center',
-                        backgroundColor: isToday ? '#6C63FF' : 'transparent',
+                        backgroundColor: isToday ? colors.brand : 'transparent',
                       }}>
                         <Text style={{
                           fontSize: 13,
@@ -142,7 +144,7 @@ const MonthSection = React.memo(({ year, month, today, events, onSalePress }: Mo
                           color: isToday ? '#FFFFFF'
                             : dayIdx === 0 ? '#EF4444'
                             : dayIdx === 6 ? '#3B82F6'
-                            : '#1E1B4B',
+                            : colors.text,
                         }}>
                           {dayNum}
                         </Text>
@@ -236,6 +238,7 @@ interface CalendarProps {
 }
 
 export default function Calendar({ onSalePress }: CalendarProps) {
+  const colors = useThemeColors();
   const today = getToday();
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [selectedBrandIds, setSelectedBrandIds] = useState<Set<string>>(new Set());
@@ -266,39 +269,39 @@ export default function Calendar({ onSalePress }: CalendarProps) {
   const brandLabel = selectedBrandIds.size > 0 ? `쇼핑몰 (${selectedBrandIds.size})` : '쇼핑몰';
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
 
       {/* ── 고정 헤더 ── */}
-      <View style={{ backgroundColor: '#FFFFFF', paddingHorizontal: 20, paddingTop: 16, paddingBottom: 8 }}>
+      <View style={{ backgroundColor: colors.background, paddingHorizontal: 20, paddingTop: 16, paddingBottom: 8 }}>
         {/* 타이틀 + 필터 */}
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-          <Text style={{ fontSize: 18, fontWeight: '800', color: '#1E1B4B' }}>세일 일정</Text>
+          <Text style={{ fontSize: 18, fontWeight: '800', color: colors.text }}>세일 일정</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <TouchableOpacity
               onPress={() => setShowCategoryModal(true)}
               style={{
                 flexDirection: 'row', alignItems: 'center',
-                backgroundColor: selectedCategory ? '#6C63FF' : '#F3F4F6',
+                backgroundColor: selectedCategory ? colors.brand : colors.surfaceSecondary,
                 borderRadius: 20, paddingHorizontal: 12, paddingVertical: 7, marginRight: 8,
               }}
             >
-              <Text style={{ fontSize: 12, fontWeight: '700', color: selectedCategory ? '#FFFFFF' : '#1E1B4B', marginRight: 3 }}>
+              <Text style={{ fontSize: 12, fontWeight: '700', color: selectedCategory ? '#FFFFFF' : colors.text, marginRight: 3 }}>
                 {selectedCategory ?? '카테고리'}
               </Text>
-              <Ionicons name="chevron-down" size={12} color={selectedCategory ? '#FFFFFF' : '#9CA3AF'} />
+              <Ionicons name="chevron-down" size={12} color={selectedCategory ? '#FFFFFF' : colors.textSecondary} />
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => setShowBrandModal(true)}
               style={{
                 flexDirection: 'row', alignItems: 'center',
-                backgroundColor: selectedBrandIds.size > 0 ? '#6C63FF' : '#F3F4F6',
+                backgroundColor: selectedBrandIds.size > 0 ? colors.brand : colors.surfaceSecondary,
                 borderRadius: 20, paddingHorizontal: 12, paddingVertical: 7,
               }}
             >
-              <Text style={{ fontSize: 12, fontWeight: '700', color: selectedBrandIds.size > 0 ? '#FFFFFF' : '#1E1B4B', marginRight: 3 }}>
+              <Text style={{ fontSize: 12, fontWeight: '700', color: selectedBrandIds.size > 0 ? '#FFFFFF' : colors.text, marginRight: 3 }}>
                 {brandLabel}
               </Text>
-              <Ionicons name="chevron-down" size={12} color={selectedBrandIds.size > 0 ? '#FFFFFF' : '#9CA3AF'} />
+              <Ionicons name="chevron-down" size={12} color={selectedBrandIds.size > 0 ? '#FFFFFF' : colors.textSecondary} />
             </TouchableOpacity>
           </View>
         </View>
@@ -306,7 +309,7 @@ export default function Calendar({ onSalePress }: CalendarProps) {
       </View>
 
       {/* 헤더 아래 구분선 */}
-      <View style={{ height: 1, backgroundColor: '#F3F4F6' }} />
+      <View style={{ height: 1, backgroundColor: colors.surfaceSecondary }} />
 
       {/* ── 월 스크롤 FlatList 또는 스켈레톤 ── */}
       {loading ? (
@@ -328,7 +331,7 @@ export default function Calendar({ onSalePress }: CalendarProps) {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 120 }}
           ItemSeparatorComponent={() => (
-            <View style={{ height: 1, backgroundColor: '#E5E7EB', marginHorizontal: 20 }} />
+            <View style={{ height: 1, backgroundColor: colors.border, marginHorizontal: 20 }} />
           )}
         />
       )}
@@ -341,23 +344,23 @@ export default function Calendar({ onSalePress }: CalendarProps) {
           onPress={() => setShowCategoryModal(false)}
         >
           <View style={{
-            backgroundColor: '#FFFFFF', borderTopLeftRadius: 28, borderTopRightRadius: 28,
+            backgroundColor: colors.card, borderTopLeftRadius: 28, borderTopRightRadius: 28,
             paddingHorizontal: 24, paddingTop: 16, paddingBottom: 36,
           }}>
-            <View style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: '#E5E7EB', alignSelf: 'center', marginBottom: 20 }} />
-            <Text style={{ fontSize: 18, fontWeight: '800', color: '#1E1B4B', marginBottom: 16 }}>카테고리 선택</Text>
+            <View style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: colors.border, alignSelf: 'center', marginBottom: 20 }} />
+            <Text style={{ fontSize: 18, fontWeight: '800', color: colors.text, marginBottom: 16 }}>카테고리 선택</Text>
             {CATEGORY_OPTIONS.map(opt => {
               const isActive = selectedCategory === opt.value;
               return (
                 <TouchableOpacity
                   key={String(opt.value)}
-                  style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' }}
+                  style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: colors.surfaceSecondary }}
                   onPress={() => { setSelectedCategory(opt.value); setShowCategoryModal(false); }}
                 >
-                  <Text style={{ fontSize: 15, fontWeight: isActive ? '700' : '500', color: isActive ? '#6C63FF' : '#1E1B4B' }}>
+                  <Text style={{ fontSize: 15, fontWeight: isActive ? '700' : '500', color: isActive ? colors.brand : colors.text }}>
                     {opt.label}
                   </Text>
-                  {isActive && <Ionicons name="checkmark" size={18} color="#6C63FF" />}
+                  {isActive && <Ionicons name="checkmark" size={18} color={colors.brand} />}
                 </TouchableOpacity>
               );
             })}
@@ -372,10 +375,10 @@ export default function Calendar({ onSalePress }: CalendarProps) {
           activeOpacity={1}
           onPress={() => setShowBrandModal(false)}
         >
-          <View style={{ backgroundColor: '#FFFFFF', borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 24, paddingTop: 16, maxHeight: '70%' }}>
-            <View style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: '#E5E7EB', alignSelf: 'center', marginBottom: 20 }} />
+          <View style={{ backgroundColor: colors.card, borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 24, paddingTop: 16, maxHeight: '70%' }}>
+            <View style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: colors.border, alignSelf: 'center', marginBottom: 20 }} />
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <Text style={{ fontSize: 18, fontWeight: '800', color: '#1E1B4B' }}>쇼핑몰 선택</Text>
+              <Text style={{ fontSize: 18, fontWeight: '800', color: colors.text }}>쇼핑몰 선택</Text>
               <TouchableOpacity onPress={() => setSelectedBrandIds(new Set())}>
                 <Text style={{ fontSize: 13, color: '#EF5350', fontWeight: '700' }}>전체 해제</Text>
               </TouchableOpacity>
@@ -387,23 +390,23 @@ export default function Calendar({ onSalePress }: CalendarProps) {
                 const isSelected = selectedBrandIds.has(item.id);
                 return (
                   <TouchableOpacity
-                    style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' }}
+                    style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: colors.surfaceSecondary }}
                     onPress={() => {
                       const next = new Set(selectedBrandIds);
                       if (isSelected) next.delete(item.id); else next.add(item.id);
                       setSelectedBrandIds(next);
                     }}
                   >
-                    <Text style={{ fontSize: 15, fontWeight: isSelected ? '700' : '500', color: isSelected ? '#6C63FF' : '#1E1B4B' }}>
+                    <Text style={{ fontSize: 15, fontWeight: isSelected ? '700' : '500', color: isSelected ? colors.brand : colors.text }}>
                       {item.name}
                     </Text>
-                    {isSelected && <Ionicons name="checkmark-circle" size={20} color="#6C63FF" />}
+                    {isSelected && <Ionicons name="checkmark-circle" size={20} color={colors.brand} />}
                   </TouchableOpacity>
                 );
               }}
             />
             <TouchableOpacity
-              style={{ marginVertical: 20, paddingVertical: 16, borderRadius: 16, alignItems: 'center', backgroundColor: '#6C63FF' }}
+              style={{ marginVertical: 20, paddingVertical: 16, borderRadius: 16, alignItems: 'center', backgroundColor: colors.brand }}
               onPress={() => setShowBrandModal(false)}
             >
               <Text style={{ color: '#FFFFFF', fontSize: 15, fontWeight: '800' }}>확인</Text>

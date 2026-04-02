@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import BottomSheet from '@gorhom/bottom-sheet';
 import SaleDetailSheet from '../../components/SaleDetailSheet';
 import { useSheetStore } from '../../store/sheetStore';
+import { useThemeColors, useColorScheme } from '../../hooks/useColorScheme';
 
 import IndexScreen from './index';
 import CalendarScreen from './calendar';
@@ -25,8 +26,15 @@ interface LiquidGlassTabBarProps {
 }
 
 function LiquidGlassTabBar({ currentPage, onTabPress }: LiquidGlassTabBarProps) {
+  const colors = useThemeColors();
+  const scheme = useColorScheme();
   const insets = useSafeAreaInsets();
   const bottom = Math.max(insets.bottom, 12) + 8;
+
+  const tabBg = scheme === 'dark' ? 'rgba(30,30,30,0.8)' : 'rgba(255,255,255,0.5)';
+  const tabBorder = scheme === 'dark' ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.75)';
+  const tabHighlight = scheme === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.9)';
+  const inactiveIconColor = scheme === 'dark' ? 'rgba(255,255,255,0.45)' : 'rgba(30,27,75,0.4)';
 
   return (
     <View
@@ -36,9 +44,9 @@ function LiquidGlassTabBar({ currentPage, onTabPress }: LiquidGlassTabBarProps) 
         bottom,
         left: 20,
         right: 20,
-        shadowColor: '#000000',
+        shadowColor: scheme === 'dark' ? '#000000' : '#000000',
         shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.18,
+        shadowOpacity: scheme === 'dark' ? 0.4 : 0.18,
         shadowRadius: 28,
         elevation: 20,
         borderRadius: 36,
@@ -49,10 +57,10 @@ function LiquidGlassTabBar({ currentPage, onTabPress }: LiquidGlassTabBarProps) 
         style={{
           flexDirection: 'row',
           alignItems: 'center',
-          backgroundColor: 'rgba(255,255,255,0.5)',
+          backgroundColor: tabBg,
           borderRadius: 36,
           borderWidth: 1,
-          borderColor: 'rgba(255,255,255,0.75)',
+          borderColor: tabBorder,
           paddingVertical: 10,
           paddingHorizontal: 6,
           overflow: 'hidden',
@@ -66,7 +74,7 @@ function LiquidGlassTabBar({ currentPage, onTabPress }: LiquidGlassTabBarProps) 
             left: 24,
             right: 24,
             height: 1,
-            backgroundColor: 'rgba(255,255,255,0.9)',
+            backgroundColor: tabHighlight,
           }}
         />
 
@@ -81,16 +89,16 @@ function LiquidGlassTabBar({ currentPage, onTabPress }: LiquidGlassTabBarProps) 
               style={{ flex: 1, alignItems: 'center' }}
             >
               {focused ? (
-                /* Active: filled purple pill with glow */
+                /* Active: filled brand pill with glow */
                 <View
                   style={{
                     flexDirection: 'row',
                     alignItems: 'center',
-                    backgroundColor: '#6C63FF',
+                    backgroundColor: colors.brand,
                     borderRadius: 24,
                     paddingVertical: 10,
                     paddingHorizontal: 14,
-                    shadowColor: '#6C63FF',
+                    shadowColor: colors.brand,
                     shadowOffset: { width: 0, height: 4 },
                     shadowOpacity: 0.55,
                     shadowRadius: 12,
@@ -102,7 +110,7 @@ function LiquidGlassTabBar({ currentPage, onTabPress }: LiquidGlassTabBarProps) 
               ) : (
                 /* Inactive: just outline icon, slightly tinted */
                 <View style={{ paddingVertical: 10, paddingHorizontal: 10 }}>
-                  <Ionicons name={tab.iconOutline} size={22} color="rgba(30,27,75,0.4)" />
+                  <Ionicons name={tab.iconOutline} size={22} color={inactiveIconColor} />
                 </View>
               )}
             </TouchableOpacity>
