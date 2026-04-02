@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TextInput, FlatList, TouchableOpacity, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useThemeColors } from '../../hooks/useColorScheme';
+import { Ionicons } from '@expo/vector-icons';
 import { useSaleStore } from '../../store/saleStore';
 import BrandCard from '../../components/BrandCard';
 import { Category } from '../../types';
@@ -14,7 +14,6 @@ const CATEGORY_LABELS: Record<string, string> = {
 };
 
 export default function ExploreScreen() {
-  const colors = useThemeColors();
   const { selectedCategory, searchQuery, setSelectedCategory, setSearchQuery, getFilteredBrands, saleEvents, loading } = useSaleStore();
 
   if (loading) return <ExploreSkeleton />;
@@ -25,29 +24,44 @@ export default function ExploreScreen() {
     saleEvents.filter((e) => e.brand_id === brandId && e.status === 'active').length;
 
   return (
-    <SafeAreaView className="flex-1" style={{ backgroundColor: colors.background }}>
-      <Text className="text-2xl font-extrabold px-5 pt-4" style={{ color: colors.text }}>
-        브랜드 탐색
-      </Text>
+    <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
+      {/* header */}
+      <View style={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 12 }}>
+        <Text style={{ fontSize: 13, color: '#9CA3AF', fontWeight: '600', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+          탐색
+        </Text>
+        <Text style={{ fontSize: 26, fontWeight: '900', color: '#1E1B4B', marginTop: 2 }}>
+          브랜드
+        </Text>
+      </View>
 
       {/* 검색바 */}
-      <View
-        className="flex-row items-center mx-5 mt-4 px-3.5 py-2.5 rounded-xl border"
-        style={{ backgroundColor: colors.card, borderColor: colors.border }}
-      >
-        <Text className="text-base mr-2">🔍</Text>
+      <View style={{
+        flexDirection: 'row', alignItems: 'center',
+        marginHorizontal: 20, marginBottom: 12,
+        paddingHorizontal: 14, paddingVertical: 11,
+        backgroundColor: '#F3F4F6',
+        borderRadius: 16,
+        borderWidth: 1.5,
+        borderColor: 'rgba(108,99,255,0.12)',
+      }}>
+        <Ionicons name="search-outline" size={16} color="#9CA3AF" style={{ marginRight: 8 }} />
         <TextInput
-          className="flex-1 text-base"
+          style={{ flex: 1, fontSize: 15, color: '#1E1B4B' }}
           placeholder="브랜드 검색"
-          placeholderTextColor={colors.textSecondary}
+          placeholderTextColor="#C4C4C4"
           value={searchQuery}
           onChangeText={setSearchQuery}
-          style={{ color: colors.text }}
         />
+        {searchQuery.length > 0 && (
+          <TouchableOpacity onPress={() => setSearchQuery('')}>
+            <Ionicons name="close-circle" size={16} color="#C4C4C4" />
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* 카테고리 필터 */}
-      <View className="mt-3.5 pl-5">
+      <View style={{ paddingLeft: 20, marginBottom: 8 }}>
         <FlatList
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -57,17 +71,20 @@ export default function ExploreScreen() {
             const isActive = item === selectedCategory;
             return (
               <TouchableOpacity
-                className="px-4 py-2 rounded-full border mr-2"
                 style={{
-                  backgroundColor: isActive ? colors.accent : colors.card,
-                  borderColor: isActive ? colors.accent : colors.border,
+                  paddingHorizontal: 14, paddingVertical: 7,
+                  borderRadius: 20, marginRight: 8,
+                  backgroundColor: isActive ? '#1E1B4B' : '#F3F4F6',
+                  borderWidth: 1.5,
+                  borderColor: isActive ? '#1E1B4B' : 'rgba(0,0,0,0.08)',
                 }}
                 onPress={() => setSelectedCategory(item)}
               >
-                <Text
-                  className="text-sm font-semibold"
-                  style={{ color: isActive ? '#FFFFFF' : colors.text }}
-                >
+                <Text style={{
+                  fontSize: 13, fontWeight: '700',
+                  color: isActive ? '#FFFFFF' : '#6B7280',
+                  letterSpacing: 0.2,
+                }}>
                   {CATEGORY_LABELS[String(item)]}
                 </Text>
               </TouchableOpacity>
@@ -80,7 +97,8 @@ export default function ExploreScreen() {
       <FlatList
         data={filteredBrands}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{ padding: 20, paddingTop: 14 }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 120 }}
+        showsVerticalScrollIndicator={false}
         renderItem={({ item }) => (
           <BrandCard
             brand={item}
@@ -89,9 +107,12 @@ export default function ExploreScreen() {
           />
         )}
         ListEmptyComponent={
-          <Text className="text-center mt-10 text-sm" style={{ color: colors.textSecondary }}>
-            검색 결과가 없어요
-          </Text>
+          <View style={{ alignItems: 'center', paddingTop: 60 }}>
+            <Text style={{ fontSize: 36 }}>🔍</Text>
+            <Text style={{ fontSize: 15, color: '#9CA3AF', marginTop: 12, fontWeight: '600' }}>
+              검색 결과가 없어요
+            </Text>
+          </View>
         }
       />
     </SafeAreaView>

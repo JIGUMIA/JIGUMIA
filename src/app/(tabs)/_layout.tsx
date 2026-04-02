@@ -36,10 +36,10 @@ function LiquidGlassTabBar({ currentPage, onTabPress }: LiquidGlassTabBarProps) 
         bottom,
         left: 20,
         right: 20,
-        shadowColor: '#6C63FF',
+        shadowColor: '#000000',
         shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.25,
-        shadowRadius: 24,
+        shadowOpacity: 0.18,
+        shadowRadius: 28,
         elevation: 20,
         borderRadius: 36,
       }}
@@ -89,7 +89,7 @@ function LiquidGlassTabBar({ currentPage, onTabPress }: LiquidGlassTabBarProps) 
                     backgroundColor: '#6C63FF',
                     borderRadius: 24,
                     paddingVertical: 10,
-                    paddingHorizontal: 16,
+                    paddingHorizontal: 14,
                     shadowColor: '#6C63FF',
                     shadowOffset: { width: 0, height: 4 },
                     shadowOpacity: 0.55,
@@ -98,16 +98,6 @@ function LiquidGlassTabBar({ currentPage, onTabPress }: LiquidGlassTabBarProps) 
                   }}
                 >
                   <Ionicons name={tab.icon} size={17} color="#FFFFFF" />
-                  <Text
-                    style={{
-                      color: '#FFFFFF',
-                      fontSize: 12,
-                      fontWeight: '700',
-                      marginLeft: 5,
-                    }}
-                  >
-                    {tab.label}
-                  </Text>
                 </View>
               ) : (
                 /* Inactive: just outline icon, slightly tinted */
