@@ -21,7 +21,7 @@ const MENU_ITEMS = [
 
 export default function MyPageScreen() {
   const colors = useThemeColors();
-  const { user, signOut } = useAuthStore();
+  const { user, signOut, deleteAccount } = useAuthStore();
   const { t } = useTranslation();
   const { biometricEnabled, setBiometricEnabled, language, setLanguage } = useSettingsStore();
 
@@ -66,6 +66,27 @@ export default function MyPageScreen() {
       { text: t('cancel'), style: 'cancel' },
       { text: t('logout'), style: 'destructive', onPress: signOut },
     ]);
+  };
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      t('delete_account'),
+      t('delete_account_confirm'),
+      [
+        { text: t('cancel'), style: 'cancel' },
+        {
+          text: t('delete_account'),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteAccount();
+            } catch (e: any) {
+              Alert.alert(t('delete_account'), e.message);
+            }
+          },
+        },
+      ]
+    );
   };
 
   const handleBiometricToggle = async (value: boolean) => {
@@ -182,6 +203,13 @@ export default function MyPageScreen() {
               icon="log-out-outline"
               label={t('logout')}
               onPress={handleSignOut}
+              destructive
+            />
+            <View style={{ height: 1, backgroundColor: colors.surfaceSecondary, marginHorizontal: 20 }} />
+            <MenuItem
+              icon="trash-outline"
+              label={t('delete_account')}
+              onPress={handleDeleteAccount}
               destructive
             />
           </>

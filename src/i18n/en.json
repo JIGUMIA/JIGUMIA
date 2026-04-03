@@ -69,5 +69,7 @@
   "support_email": "Support email",
   "no_sale_info": "No sale info",
   "go_back": "Go back",
-  "clear_search": "Clear search"
+  "clear_search": "Clear search",
+  "delete_account": "Delete Account",
+  "delete_account_confirm": "Are you sure you want to delete your account?\nAll data will be permanently deleted."
 }

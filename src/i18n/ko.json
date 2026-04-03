@@ -69,5 +69,7 @@
   "support_email": "문의 이메일",
   "no_sale_info": "세일 정보가 없어요",
   "go_back": "뒤로 가기",
-  "clear_search": "검색어 지우기"
+  "clear_search": "검색어 지우기",
+  "delete_account": "회원 탈퇴",
+  "delete_account_confirm": "정말 탈퇴하시겠어요?\n모든 데이터가 삭제되며 복구할 수 없어요."
 }
