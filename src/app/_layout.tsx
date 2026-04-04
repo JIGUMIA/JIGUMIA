@@ -2,10 +2,10 @@ import '../../global.css';
 import 'react-native-url-polyfill/auto';
 import '../i18n';
 import React, { useEffect, useRef, useState } from 'react';
-import { Stack } from 'expo-router';
+import { Stack, router } from 'expo-router';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
-import { View, Text, Animated, AppState, Alert, TouchableOpacity } from 'react-native';
+import { View, Text, Image, Animated, AppState, Alert, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 let Updates: typeof import('expo-updates') | null = null;
 try { Updates = require('expo-updates'); } catch {}
@@ -24,11 +24,15 @@ export default function RootLayout() {
   const { initialize, user } = useAuthStore();
   const { fetchAll } = useSaleStore();
   const { fetchFavorites } = useFavoriteStore();
-  const { biometricEnabled } = useSettingsStore();
+  const { biometricEnabled, hasSeenOnboarding } = useSettingsStore();
   const [splashDone, setSplashDone] = useState(false);
   const [locked, setLocked] = useState(biometricEnabled);
-  const opacity = useRef(new Animated.Value(0)).current;
-  const scale = useRef(new Animated.Value(0.85)).current;
+  const logoOpacity = useRef(new Animated.Value(0)).current;
+  const logoScale = useRef(new Animated.Value(0)).current;
+  const gumiaTranslateX = useRef(new Animated.Value(60)).current;
+  const gumiaOpacity = useRef(new Animated.Value(0)).current;
+  const subtitleOpacity = useRef(new Animated.Value(0)).current;
+  const masterOpacity = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     initSentry();
@@ -36,12 +40,22 @@ export default function RootLayout() {
     fetchAll();
 
     Animated.sequence([
+      // Step 1: Logo fades in and scales up (0->1) over 600ms
       Animated.parallel([
-        Animated.timing(opacity, { toValue: 1, duration: 700, useNativeDriver: true }),
-        Animated.spring(scale, { toValue: 1, friction: 6, useNativeDriver: true }),
+        Animated.timing(logoOpacity, { toValue: 1, duration: 600, useNativeDriver: true }),
+        Animated.spring(logoScale, { toValue: 1, friction: 6, useNativeDriver: true }),
       ]),
-      Animated.delay(1000),
-      Animated.timing(opacity, { toValue: 0, duration: 500, useNativeDriver: true }),
+      // Step 2: "GUMIA" slides in from right over 500ms
+      Animated.parallel([
+        Animated.timing(gumiaTranslateX, { toValue: 0, duration: 500, useNativeDriver: true }),
+        Animated.timing(gumiaOpacity, { toValue: 1, duration: 500, useNativeDriver: true }),
+      ]),
+      // Step 3: Subtitles fade in over 400ms
+      Animated.timing(subtitleOpacity, { toValue: 1, duration: 400, useNativeDriver: true }),
+      // Step 4: Hold for 800ms
+      Animated.delay(800),
+      // Step 5: Everything fades out over 400ms
+      Animated.timing(masterOpacity, { toValue: 0, duration: 400, useNativeDriver: true }),
     ]).start(() => setSplashDone(true));
   }, []);
 
@@ -97,11 +111,17 @@ export default function RootLayout() {
     })();
   }, []);
 
+  useEffect(() => {
+    if (splashDone && !locked && !hasSeenOnboarding) {
+      router.replace('/onboarding');
+    }
+  }, [splashDone, locked, hasSeenOnboarding]);
+
   if (!splashDone) {
     return (
       <GestureHandlerRootView style={{ flex: 1 }}>
         <StatusBar style="light" />
-        <View style={{ flex: 1, backgroundColor: '#6C63FF', alignItems: 'center', justifyContent: 'center' }}>
+        <Animated.View style={{ flex: 1, backgroundColor: '#6C63FF', alignItems: 'center', justifyContent: 'center', opacity: masterOpacity }}>
           {/* background decorative circles */}
           <View style={{
             position: 'absolute', top: -80, right: -80,
@@ -114,27 +134,40 @@ export default function RootLayout() {
             backgroundColor: 'rgba(255,255,255,0.06)',
           }} />
 
-          <Animated.View style={{ opacity, transform: [{ scale }], alignItems: 'center' }}>
-            {/* Logo circle */}
-            <View style={{
-              width: 88, height: 88, borderRadius: 28,
-              backgroundColor: 'rgba(255,255,255,0.2)',
-              alignItems: 'center', justifyContent: 'center',
-              marginBottom: 24,
+          {/* Logo + GUMIA row */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 24 }}>
+            <Animated.View style={{
+              opacity: logoOpacity,
+              transform: [{ scale: logoScale }],
             }}>
-              <Text style={{ fontSize: 42, fontWeight: '900', color: '#FFFFFF' }}>J</Text>
-            </View>
-            <Text style={{ fontSize: 36, fontWeight: '900', color: '#FFFFFF' }}>
+              <Image
+                source={require('../../assets/JIGUMIA_LOGO.png')}
+                style={{ width: 90, height: 90, borderRadius: 22 }}
+                resizeMode="cover"
+              />
+            </Animated.View>
+            <Animated.Text style={{
+              fontSize: 42,
+              fontWeight: '900',
+              color: '#FFFFFF',
+              marginLeft: -18,
+              opacity: gumiaOpacity,
+              transform: [{ translateX: gumiaTranslateX }],
+            }}>
+              GUMIA
+            </Animated.Text>
+          </View>
+
+          {/* Subtitles */}
+          <Animated.View style={{ opacity: subtitleOpacity, alignItems: 'center' }}>
+            <Text style={{ fontSize: 36, fontWeight: '500', color: '#FFFFFF' }}>
               지금이야
-            </Text>
-            <Text style={{ fontSize: 14, color: 'rgba(255,255,255,0.75)', fontWeight: '600', marginTop: 6, letterSpacing: 5 }}>
-              JIGUMIA
             </Text>
             <Text style={{ fontSize: 13, color: 'rgba(255,255,255,0.55)', marginTop: 12 }}>
               브랜드 할인 캘린더
             </Text>
           </Animated.View>
-        </View>
+        </Animated.View>
       </GestureHandlerRootView>
     );
   }
@@ -165,6 +198,7 @@ export default function RootLayout() {
       <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
       <NetworkBanner />
       <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="onboarding" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="sale-list" />
         <Stack.Screen name="search" />
@@ -173,6 +207,9 @@ export default function RootLayout() {
         <Stack.Screen name="app-info" />
         <Stack.Screen name="sale/[id]" />
         <Stack.Screen name="brand/[id]" />
+        <Stack.Screen name="login" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="terms" />
+        <Stack.Screen name="privacy" />
       </Stack>
     </GestureHandlerRootView>
   );
