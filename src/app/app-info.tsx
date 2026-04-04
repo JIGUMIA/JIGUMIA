@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -43,14 +43,10 @@ export default function AppInfoScreen() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 48 }}>
         {/* Logo + App name */}
         <View style={{ alignItems: 'center', paddingVertical: 36 }}>
-          <View style={{
-            width: 80, height: 80, borderRadius: 24,
-            backgroundColor: colors.brand,
-            alignItems: 'center', justifyContent: 'center',
-            marginBottom: 16,
-          }}>
-            <Text style={{ fontSize: 36, fontWeight: '900', color: '#FFFFFF', letterSpacing: -1 }}>J</Text>
-          </View>
+          <Image
+            source={require('../../assets/icon.png')}
+            style={{ width: 80, height: 80, borderRadius: 24, marginBottom: 16 }}
+          />
           <Text style={{ fontSize: 22, fontWeight: '900', color: colors.text, letterSpacing: -0.5 }}>
             JIGUMIA
           </Text>

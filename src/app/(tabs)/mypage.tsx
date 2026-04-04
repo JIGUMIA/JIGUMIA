@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Alert, Switch } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import * as WebBrowser from 'expo-web-browser';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -9,14 +8,12 @@ let LocalAuthentication: typeof import('expo-local-authentication') | null = nul
 try { LocalAuthentication = require('expo-local-authentication'); } catch {}
 import { useAuthStore } from '../../store/authStore';
 import { useSettingsStore } from '../../store/settingsStore';
-import { supabase } from '../../services/supabase';
 import { useThemeColors } from '../../hooks/useColorScheme';
 import i18n from '../../i18n';
 
 const MENU_ITEMS = [
   { icon: 'notifications-outline' as const, labelKey: 'notification_settings', route: '/notification-settings' as const },
   { icon: 'list-outline' as const, labelKey: 'notification_history', route: '/notification-history' as const },
-  { icon: 'information-circle-outline' as const, labelKey: 'app_info', route: '/app-info' as const },
 ];
 
 export default function MyPageScreen() {
@@ -24,42 +21,6 @@ export default function MyPageScreen() {
   const { user, signOut, deleteAccount } = useAuthStore();
   const { t } = useTranslation();
   const { biometricEnabled, setBiometricEnabled, language, setLanguage } = useSettingsStore();
-
-  const handleGoogleLogin = async () => {
-    try {
-      const redirectTo = 'jigumia://auth/callback';
-
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo,
-          skipBrowserRedirect: true,
-        },
-      });
-
-      if (error) throw error;
-      if (!data.url) return;
-
-      const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
-
-      if (result.type === 'success' && result.url) {
-        const hash = result.url.split('#')[1] ?? '';
-        const params = new URLSearchParams(hash);
-        const access_token = params.get('access_token');
-        const refresh_token = params.get('refresh_token');
-
-        if (access_token && refresh_token) {
-          const { error: sessionError } = await supabase.auth.setSession({
-            access_token,
-            refresh_token,
-          });
-          if (sessionError) throw sessionError;
-        }
-      }
-    } catch (e: any) {
-      Alert.alert(t('login_error'), e.message);
-    }
-  };
 
   const handleSignOut = () => {
     Alert.alert(t('logout'), t('logout_confirm'), [
@@ -132,15 +93,19 @@ export default function MyPageScreen() {
       </View>
 
       {/* Profile card */}
-      <View style={{
-        marginHorizontal: 20,
-        backgroundColor: colors.card,
-        borderRadius: 20,
-        padding: 20,
-        overflow: 'hidden',
-        borderWidth: 1,
-        borderColor: colors.border,
-      }}>
+      <TouchableOpacity
+        activeOpacity={user ? 1 : 0.7}
+        onPress={() => { if (!user) router.push('/login'); }}
+        style={{
+          marginHorizontal: 20,
+          backgroundColor: colors.card,
+          borderRadius: 20,
+          padding: 20,
+          overflow: 'hidden',
+          borderWidth: 1,
+          borderColor: colors.border,
+        }}
+      >
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <View style={{
             width: 52, height: 52, borderRadius: 16,
@@ -160,10 +125,10 @@ export default function MyPageScreen() {
               {user ? (user.user_metadata?.full_name ?? t('user_label')) : t('login_required')}
             </Text>
             <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 3, fontWeight: '500' }}>
-              {user ? user.email : t('login_prompt')}
+              {user ? user.email : t('login_tap')}
             </Text>
           </View>
-          {user && (
+          {user ? (
             <View style={{
               paddingHorizontal: 10, paddingVertical: 5,
               backgroundColor: colors.brand + '12',
@@ -171,9 +136,11 @@ export default function MyPageScreen() {
             }}>
               <Text style={{ fontSize: 11, fontWeight: '700', color: colors.brand }}>{t('member')}</Text>
             </View>
+          ) : (
+            <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
           )}
         </View>
-      </View>
+      </TouchableOpacity>
 
       {/* Menu */}
       <View style={{
@@ -184,20 +151,32 @@ export default function MyPageScreen() {
         borderWidth: 1,
         borderColor: colors.border,
       }}>
-        {user ? (
+        {user && MENU_ITEMS.map((item, idx) => (
+          <View key={item.labelKey}>
+            <MenuItem
+              icon={item.icon}
+              label={t(item.labelKey)}
+              onPress={() => router.push(item.route)}
+            />
+            {idx < MENU_ITEMS.length - 1 && (
+              <View style={{ height: 1, backgroundColor: colors.surfaceSecondary, marginHorizontal: 20 }} />
+            )}
+          </View>
+        ))}
+        {user && <View style={{ height: 1, backgroundColor: colors.surfaceSecondary, marginHorizontal: 20 }} />}
+        <MenuItem
+          icon="information-circle-outline"
+          label={t('app_info')}
+          onPress={() => router.push('/app-info')}
+        />
+        <View style={{ height: 1, backgroundColor: colors.surfaceSecondary, marginHorizontal: 20 }} />
+        <MenuItem
+          icon="mail-outline"
+          label={t('contact')}
+          onPress={() => router.push('/contact')}
+        />
+        {user && (
           <>
-            {MENU_ITEMS.map((item, idx) => (
-              <View key={item.labelKey}>
-                <MenuItem
-                  icon={item.icon}
-                  label={t(item.labelKey)}
-                  onPress={() => router.push(item.route)}
-                />
-                {idx < MENU_ITEMS.length - 1 && (
-                  <View style={{ height: 1, backgroundColor: colors.surfaceSecondary, marginHorizontal: 20 }} />
-                )}
-              </View>
-            ))}
             <View style={{ height: 1, backgroundColor: colors.surfaceSecondary, marginHorizontal: 20 }} />
             <MenuItem
               icon="log-out-outline"
@@ -213,24 +192,6 @@ export default function MyPageScreen() {
               destructive
             />
           </>
-        ) : (
-          <TouchableOpacity
-            style={{
-              paddingVertical: 18,
-              alignItems: 'center',
-              flexDirection: 'row',
-              justifyContent: 'center',
-            }}
-            onPress={handleGoogleLogin}
-            activeOpacity={0.8}
-            accessibilityLabel={t('google_login')}
-            accessibilityRole="button"
-          >
-            <Ionicons name="logo-google" size={16} color={colors.text} style={{ marginRight: 8 }} />
-            <Text style={{ fontSize: 15, fontWeight: '800', color: colors.text }}>
-              {t('google_login')}
-            </Text>
-          </TouchableOpacity>
         )}
       </View>
 
