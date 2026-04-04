@@ -4,6 +4,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 @AGENTS.md
 
+## Obsidian Blog Seeds
+
+세션에서 블로그 글감이 될 만한 작업을 했을 때, 요약을 아래 경로에 저장:
+`/Users/kohjoowon/Library/Mobile Documents/iCloud~md~obsidian/Documents/Joowon/Blog Seeds/`
+- 파일명: `YYYY-MM-DD-주제.md`
+- 내용: 작업 요약, 핵심 포인트, 블로그 키워드
+- 사용자가 "Obsidian에 정리해줘" 또는 "블로그 글 써줘" 요청 시 활용
+
 ## Project Context
 
 **JIGUMIA(지구미아)** — "지금이야"를 컨셉으로 한 브랜드 할인 캘린더 앱. 올리브영, 무신사, 29cm 등 주요 브랜드의 세일 일정을 한눈에 볼 수 있도록 제공. 20대 여성 타겟.

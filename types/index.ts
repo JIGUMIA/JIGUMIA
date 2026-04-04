@@ -31,3 +31,17 @@ export interface AdminProfile {
   role: AdminRole;
   created_at: string;
 }
+
+export type InquiryStatus = 'pending' | 'answered';
+
+export interface Inquiry {
+  id: string;
+  user_id: string;
+  user_email: string;
+  title: string;
+  content: string;
+  status: InquiryStatus;
+  admin_reply: string | null;
+  replied_at: string | null;
+  created_at: string;
+}

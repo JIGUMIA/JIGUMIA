@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { Calendar, Bell, Heart, ShoppingBag } from 'lucide-react';
 
 const FEATURES = [
@@ -41,12 +42,7 @@ export default function LandingPage() {
       <header className="bg-white border-b border-gray-100 sticky top-0 z-10">
         <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div
-              className="w-8 h-8 rounded-xl flex items-center justify-center"
-              style={{ backgroundColor: '#6C63FF' }}
-            >
-              <span className="text-white font-black text-sm italic">J</span>
-            </div>
+            <Image src="/logo.png" alt="JIGUMIA" width={32} height={32} className="rounded-xl" />
             <span className="font-bold text-[#111111] text-lg tracking-tight">JIGUMIA</span>
           </div>
           <span className="text-sm text-gray-400">출시 준비 중</span>
@@ -99,12 +95,7 @@ export default function LandingPage() {
             style={{ backgroundColor: '#EEEDF8' }}
           >
             <div className="text-center">
-              <div
-                className="w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-4"
-                style={{ backgroundColor: '#6C63FF' }}
-              >
-                <span className="text-white font-black text-3xl italic">J</span>
-              </div>
+              <Image src="/logo.png" alt="JIGUMIA" width={80} height={80} className="rounded-3xl mx-auto mb-4" />
               <p className="text-gray-400 text-sm">앱 스크린샷 준비 중</p>
             </div>
           </div>
@@ -171,10 +162,13 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="border-t border-gray-100 bg-white py-8">
         <div className="max-w-5xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-gray-400">
-          <p>© 2026 JIGUMIA. All rights reserved.</p>
+          <p>&copy; 2025 JIGUMIA. All rights reserved.</p>
           <div className="flex items-center gap-6">
             <Link href="/privacy" className="hover:text-gray-600 transition-colors">
               개인정보 처리방침
+            </Link>
+            <Link href="/terms" className="hover:text-gray-600 transition-colors">
+              이용약관
             </Link>
             <Link href="/login" className="hover:text-gray-600 transition-colors">
               관리자

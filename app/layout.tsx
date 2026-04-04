@@ -8,6 +8,9 @@ export const metadata: Metadata = {
   title: 'JIGUMIA — 브랜드 할인 캘린더',
   description:
     '올리브영, 무신사, 29cm 등 주요 브랜드의 할인 일정을 캘린더로 한눈에 확인하고, 세일 시작 전 알림을 받아보세요.',
+  icons: {
+    icon: '/favicon.png',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
