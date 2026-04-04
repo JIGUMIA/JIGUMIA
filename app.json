@@ -75,7 +75,8 @@
       "expo-web-browser",
       "@sentry/react-native",
       "expo-localization",
-      "expo-image"
+      "expo-image",
+      "expo-apple-authentication"
     ]
   }
 }
