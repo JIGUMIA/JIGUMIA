@@ -23,6 +23,9 @@ export async function proxy(req: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser();
 
+  // ── auth callback은 세션 교환 전이므로 그대로 통과 ─
+  if (pathname.startsWith('/auth/callback')) return res;
+
   // ── 비로그인: 보호 라우트 → 로그인으로, /login은 통과 ─
   if (!user) {
     if (pathname === '/login') return res;
@@ -66,7 +69,9 @@ export const config = {
     '/dashboard/:path*',
     '/brands/:path*',
     '/sale-events/:path*',
+    '/inquiries/:path*',
     '/api/:path*',
     '/login',
+    '/auth/callback',
   ],
 };
