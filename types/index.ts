@@ -45,3 +45,6 @@ export interface Inquiry {
   replied_at: string | null;
   created_at: string;
 }
+
+// Crawl types
+export type { Platform, CrawlResult } from '@/lib/crawlers/types';
