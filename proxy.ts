@@ -79,6 +79,7 @@ export const config = {
     '/brands/:path*',
     '/sale-events/:path*',
     '/inquiries/:path*',
+    '/crawl/:path*',
     '/api/:path*',
     '/login',
     '/auth/callback',
