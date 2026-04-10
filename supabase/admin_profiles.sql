@@ -15,6 +15,10 @@ CREATE POLICY "admin can read own profile"
   ON admin_profiles FOR SELECT
   USING (auth.uid() = id);
 
+-- service_role에 DML 권한 부여 (proxy.ts / verifyAdmin() 에서 사용)
+-- anon/authenticated 롤에는 의도적으로 부여하지 않음
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE admin_profiles TO service_role;
+
 -- 첫 번째 관리자 계정 추가 방법:
 -- 1. Supabase Dashboard → Authentication → Users에서 이메일/비밀번호로 사용자 생성
 -- 2. 아래 쿼리에서 user_id를 해당 사용자의 UUID로 교체 후 실행

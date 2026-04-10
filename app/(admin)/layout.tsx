@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createAdminClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
@@ -14,7 +14,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   if (!user) redirect('/login');
 
-  const { data: profile } = await supabase
+  // admin_profiles는 authenticated 롤에 GRANT가 없어 service_role로 조회
+  const adminSupabase = createAdminClient();
+  const { data: profile } = await adminSupabase
     .from('admin_profiles')
     .select('role')
     .eq('id', user.id)

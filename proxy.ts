@@ -32,8 +32,17 @@ export async function proxy(req: NextRequest) {
     return NextResponse.redirect(new URL('/login', req.url));
   }
 
-  // ── 로그인 상태: admin role 확인 ─────────────────────
-  const { data: profile } = await supabase
+  // ── 로그인 상태: admin role 확인 (service_role로 조회 — admin_profiles는
+  //    authenticated 롤에 GRANT가 없어 RLS만으로는 읽을 수 없음) ─
+  const adminSupabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    {
+      cookies: { getAll: () => [], setAll: () => {} },
+      auth: { persistSession: false },
+    }
+  );
+  const { data: profile } = await adminSupabase
     .from('admin_profiles')
     .select('role')
     .eq('id', user.id)
