@@ -26,7 +26,7 @@ interface ExpoMessage {
 }
 
 async function pushBatch(messages: ExpoMessage[]) {
-  if (messages.length === 0) return [];
+  if (messages.length === 0) return { tickets: [], raw: null, ok: true, status: 0 };
   const res = await fetch(EXPO_PUSH_URL, {
     method: 'POST',
     headers: {
@@ -36,8 +36,10 @@ async function pushBatch(messages: ExpoMessage[]) {
     },
     body: JSON.stringify(messages),
   });
-  const json = await res.json();
-  return (json?.data ?? []) as Array<{ status: string; details?: { error?: string } }>;
+  const json = await res.json().catch(() => null);
+  console.log('[notify] expo response', res.status, JSON.stringify(json));
+  const tickets = (json?.data ?? []) as Array<{ status: string; id?: string; details?: { error?: string } }>;
+  return { tickets, raw: json, ok: res.ok, status: res.status };
 }
 
 export async function POST(req: NextRequest) {
@@ -179,27 +181,44 @@ export async function POST(req: NextRequest) {
   }
 
   // 4) batch send (chunks of 100)
-  const responses: Array<{ status: string; details?: { error?: string } }> = [];
+  const responses: Array<{ status: string; id?: string; details?: { error?: string } }> = [];
+  const errorMessages: string[] = [];
+  let firstFailedRaw: unknown = null;
   for (let i = 0; i < messages.length; i += 100) {
     const chunk = messages.slice(i, i + 100);
-    const res = await pushBatch(chunk);
-    responses.push(...res);
+    const { tickets, raw, ok, status } = await pushBatch(chunk);
+    if (!ok) {
+      errorMessages.push(`Expo API HTTP ${status}`);
+      if (!firstFailedRaw) firstFailedRaw = raw;
+    }
+    responses.push(...tickets);
   }
 
-  // 5) cleanup dead tokens
+  // 5) cleanup dead tokens + collect ticket errors
   const dead: string[] = [];
+  const ticketErrors: string[] = [];
   responses.forEach((r, idx) => {
-    if (r.status === 'error' && r.details?.error === 'DeviceNotRegistered') {
-      dead.push(tokensSent[idx]);
+    if (r.status === 'error') {
+      ticketErrors.push(r.details?.error ?? 'unknown');
+      if (r.details?.error === 'DeviceNotRegistered') {
+        dead.push(tokensSent[idx]);
+      }
     }
   });
   if (dead.length > 0) {
     await supabase.from('push_tokens').delete().in('expo_push_token', dead);
   }
 
+  const okTickets = responses.filter((r) => r.status === 'ok').length;
+  console.log('[notify] summary', { attempted: messages.length, okTickets, dead: dead.length, ticketErrors, httpErrors: errorMessages });
+
   return NextResponse.json({
-    sent: messages.length,
+    sent: okTickets,
+    attempted: messages.length,
     dead: dead.length,
+    ticket_errors: ticketErrors.length > 0 ? ticketErrors : undefined,
+    http_errors: errorMessages.length > 0 ? errorMessages : undefined,
+    debug_raw: firstFailedRaw ?? undefined,
     target_count: targetCount,
   });
 }
