@@ -2,12 +2,13 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Tag, CalendarDays, MessageSquare, Globe } from 'lucide-react';
+import { LayoutDashboard, Tag, CalendarDays, MessageSquare, Globe, Bell } from 'lucide-react';
 
 const navItems = [
   { href: '/dashboard', label: '대시보드', icon: LayoutDashboard },
   { href: '/brands', label: '브랜드', icon: Tag },
   { href: '/sale-events', label: '세일 이벤트', icon: CalendarDays },
+  { href: '/notifications', label: '푸시 알림', icon: Bell },
   { href: '/inquiries', label: '문의 관리', icon: MessageSquare },
   { href: '/crawl', label: '크롤링', icon: Globe },
 ];
