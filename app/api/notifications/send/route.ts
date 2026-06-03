@@ -83,14 +83,20 @@ export async function POST(req: NextRequest) {
       .from('user_notification_preferences')
       .select('user_id')
       .eq('push_enabled', true);
-    if (error) return NextResponse.json({ error: 'DB error (prefs)' }, { status: 500 });
+    if (error) {
+      console.error('[notify] prefs (all)', error);
+      return NextResponse.json({ error: `DB error (prefs): ${error.message}`, code: error.code, hint: error.hint }, { status: 500 });
+    }
     userIds = (data ?? []).map((r) => r.user_id as string);
   } else {
     const { data: favs, error: favErr } = await supabase
       .from('user_favorites')
       .select('user_id')
       .eq('brand_id', brandId!);
-    if (favErr) return NextResponse.json({ error: 'DB error (favorites)' }, { status: 500 });
+    if (favErr) {
+      console.error('[notify] favorites', favErr);
+      return NextResponse.json({ error: `DB error (favorites): ${favErr.message}`, code: favErr.code, hint: favErr.hint }, { status: 500 });
+    }
 
     const candidates = (favs ?? []).map((r) => r.user_id as string);
     if (candidates.length === 0) {
@@ -102,7 +108,10 @@ export async function POST(req: NextRequest) {
       .select('user_id')
       .in('user_id', candidates)
       .eq('push_enabled', true);
-    if (prefErr) return NextResponse.json({ error: 'DB error (prefs)' }, { status: 500 });
+    if (prefErr) {
+      console.error('[notify] prefs (brand)', prefErr);
+      return NextResponse.json({ error: `DB error (prefs): ${prefErr.message}`, code: prefErr.code, hint: prefErr.hint }, { status: 500 });
+    }
 
     const { data: disabled } = await supabase
       .from('user_notification_settings')
@@ -126,7 +135,10 @@ export async function POST(req: NextRequest) {
     .from('push_tokens')
     .select('user_id, expo_push_token')
     .in('user_id', userIds);
-  if (tokErr) return NextResponse.json({ error: 'DB error (tokens)' }, { status: 500 });
+  if (tokErr) {
+    console.error('[notify] tokens', tokErr);
+    return NextResponse.json({ error: `DB error (tokens): ${tokErr.message}`, code: tokErr.code, hint: tokErr.hint }, { status: 500 });
+  }
 
   const targetCount = userIds.length;
   const rows = (tokens ?? []) as Array<{ user_id: string; expo_push_token: string }>;
