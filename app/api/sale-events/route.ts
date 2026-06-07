@@ -13,7 +13,10 @@ export async function GET() {
     .select('*, brand:brands(id, name, color)')
     .order('start_date', { ascending: false });
 
-  if (error) return NextResponse.json({ error: 'DB error' }, { status: 500 });
+  if (error) {
+    console.error('[sale-events] DB error:', error);
+    return NextResponse.json({ error: error.message, details: error }, { status: 500 });
+  }
   return NextResponse.json(data);
 }
 
@@ -37,6 +40,9 @@ export async function POST(req: NextRequest) {
     .select()
     .single();
 
-  if (error) return NextResponse.json({ error: 'DB error' }, { status: 500 });
+  if (error) {
+    console.error('[sale-events] DB error:', error);
+    return NextResponse.json({ error: error.message, details: error }, { status: 500 });
+  }
   return NextResponse.json(data, { status: 201 });
 }

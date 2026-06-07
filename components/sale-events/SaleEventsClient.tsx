@@ -97,32 +97,28 @@ export default function SaleEventsClient({
     };
 
     try {
+      const url = editing ? `/api/sale-events/${editing.id}` : '/api/sale-events';
+      const method = editing ? 'PATCH' : 'POST';
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const payload = await res.json().catch(() => ({}));
+        throw new Error(payload?.error ?? `HTTP ${res.status}`);
+      }
+      const saved: SaleEvent = await res.json();
+      const brand = brands.find((b) => b.id === saved.brand_id) ?? null;
       if (editing) {
-        const res = await fetch(`/api/sale-events/${editing.id}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-        });
-        if (!res.ok) throw new Error();
-        const updated: SaleEvent = await res.json();
-        const brand = brands.find((b) => b.id === updated.brand_id) ?? null;
-        setEvents((prev) =>
-          prev.map((ev) => (ev.id === updated.id ? { ...updated, brand } : ev))
-        );
+        setEvents((prev) => prev.map((ev) => (ev.id === saved.id ? { ...saved, brand } : ev)));
       } else {
-        const res = await fetch('/api/sale-events', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-        });
-        if (!res.ok) throw new Error();
-        const created: SaleEvent = await res.json();
-        const brand = brands.find((b) => b.id === created.brand_id) ?? null;
-        setEvents((prev) => [{ ...created, brand }, ...prev]);
+        setEvents((prev) => [{ ...saved, brand }, ...prev]);
       }
       closeForm();
-    } catch {
-      setError('저장 중 오류가 발생했습니다.');
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : '알 수 없는 오류';
+      setError(`저장 중 오류가 발생했습니다: ${msg}`);
     } finally {
       setLoading(false);
     }

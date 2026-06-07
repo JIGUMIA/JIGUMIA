@@ -36,7 +36,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     .select()
     .single();
 
-  if (error) return NextResponse.json({ error: 'DB error' }, { status: 500 });
+  if (error) {
+    console.error('[sale-events:patch] DB error:', error);
+    return NextResponse.json({ error: error.message, details: error }, { status: 500 });
+  }
   return NextResponse.json(data);
 }
 
@@ -48,6 +51,9 @@ export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id:
   const supabase = createAdminClient();
   const { error } = await supabase.from('sale_events').delete().eq('id', id);
 
-  if (error) return NextResponse.json({ error: 'DB error' }, { status: 500 });
+  if (error) {
+    console.error('[sale-events:delete] DB error:', error);
+    return NextResponse.json({ error: error.message, details: error }, { status: 500 });
+  }
   return NextResponse.json({ success: true });
 }
