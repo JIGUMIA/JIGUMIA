@@ -1,16 +1,18 @@
 import { createAdminClient } from '@/lib/supabase/server';
 import { Tag, Calendar, Users, TrendingUp } from 'lucide-react';
+import { computeSaleStatus } from '@/lib/sale-status';
 
 async function getStats() {
   const supabase = createAdminClient();
   const [brands, events, favorites] = await Promise.all([
     supabase.from('brands').select('id', { count: 'exact', head: true }),
-    supabase.from('sale_events').select('id, status', { count: 'exact' }),
+    supabase.from('sale_events').select('id, start_date, end_date', { count: 'exact' }),
     supabase.from('user_favorites').select('id', { count: 'exact', head: true }),
   ]);
 
-  const activeCount = events.data?.filter((e) => e.status === 'active').length ?? 0;
-  const upcomingCount = events.data?.filter((e) => e.status === 'upcoming').length ?? 0;
+  const statuses = events.data?.map((e) => computeSaleStatus(e.start_date, e.end_date)) ?? [];
+  const activeCount = statuses.filter((s) => s === 'active').length;
+  const upcomingCount = statuses.filter((s) => s === 'upcoming').length;
 
   return {
     brands: brands.count ?? 0,
@@ -67,7 +69,7 @@ export default async function DashboardPage() {
           <h2 className="text-base font-semibold text-white">최근 등록된 세일</h2>
         </div>
         <div className="divide-y divide-slate-800">
-          {recentEvents.map((event: any) => (
+          {recentEvents.map((event) => (
             <div key={event.id} className="px-6 py-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div
@@ -78,10 +80,10 @@ export default async function DashboardPage() {
                 </div>
                 <div>
                   <div className="text-sm font-medium text-white">{event.title}</div>
-                  <div className="text-xs text-slate-400">{event.brand?.name} · {event.discount_rate}</div>
+                  <div className="text-xs text-slate-400">{event.brand?.name} · {event.start_date} ~ {event.end_date}</div>
                 </div>
               </div>
-              <StatusBadge status={event.status} />
+              <StatusBadge status={computeSaleStatus(event.start_date, event.end_date)} />
             </div>
           ))}
         </div>

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/server';
 import { verifyAdmin } from '@/lib/auth';
+import { computeSaleStatus } from '@/lib/sale-status';
 
 export async function GET() {
   const user = await verifyAdmin();
@@ -21,16 +22,18 @@ export async function POST(req: NextRequest) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const body = await req.json();
-  const { brand_id, title, start_date, end_date, discount_rate, description, status } = body;
+  const { brand_id, title, start_date, end_date, description } = body;
 
-  if (!brand_id || !title || !start_date || !end_date || !discount_rate) {
+  if (!brand_id || !title || !start_date || !end_date) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
   }
+
+  const status = computeSaleStatus(start_date, end_date);
 
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from('sale_events')
-    .insert({ brand_id, title, start_date, end_date, discount_rate, description, status: status ?? 'upcoming' })
+    .insert({ brand_id, title, start_date, end_date, description, status })
     .select()
     .single();
 

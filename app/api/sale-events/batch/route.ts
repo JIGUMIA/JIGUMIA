@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/server';
 import { verifyAdmin } from '@/lib/auth';
+import { computeSaleStatus } from '@/lib/sale-status';
 
 export async function POST(req: NextRequest) {
   const user = await verifyAdmin();
@@ -12,7 +13,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'events array is required' }, { status: 400 });
   }
 
-  // 필수 필드 검증
   for (const e of events) {
     if (!e.brand_id || !e.title || !e.start_date || !e.end_date) {
       return NextResponse.json(
@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
         end_date: e.end_date,
         discount_rate: e.discount_rate ?? null,
         description: e.description ?? null,
-        status: e.status ?? 'upcoming',
+        status: computeSaleStatus(e.start_date as string, e.end_date as string),
       }))
     )
     .select();

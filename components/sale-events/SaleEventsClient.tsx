@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { Plus, Pencil, Trash2, X, Check } from 'lucide-react';
+import { computeSaleStatus } from '@/lib/sale-status';
+import type { SaleStatus } from '@/types';
 
 interface Brand {
   id: string;
@@ -15,13 +17,12 @@ interface SaleEvent {
   title: string;
   start_date: string;
   end_date: string;
-  discount_rate: number;
   description: string | null;
-  status: 'upcoming' | 'active' | 'ended';
+  status: SaleStatus;
   brand: Brand | null;
 }
 
-const STATUSES = [
+const STATUSES: { value: SaleStatus; label: string; className: string }[] = [
   { value: 'upcoming', label: '예정', className: 'bg-blue-500/20 text-blue-400' },
   { value: 'active', label: '진행중', className: 'bg-green-500/20 text-green-400' },
   { value: 'ended', label: '종료', className: 'bg-slate-500/20 text-slate-400' },
@@ -32,12 +33,10 @@ const emptyForm = {
   title: '',
   start_date: '',
   end_date: '',
-  discount_rate: '',
   description: '',
-  status: 'upcoming' as 'upcoming' | 'active' | 'ended',
 };
 
-function statusBadge(status: string) {
+function statusBadge(status: SaleStatus) {
   const s = STATUSES.find((x) => x.value === status);
   return (
     <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${s?.className ?? ''}`}>
@@ -75,9 +74,7 @@ export default function SaleEventsClient({
       title: ev.title,
       start_date: ev.start_date,
       end_date: ev.end_date,
-      discount_rate: String(ev.discount_rate),
       description: ev.description ?? '',
-      status: ev.status,
     });
     setShowForm(true);
     setError('');
@@ -96,7 +93,6 @@ export default function SaleEventsClient({
 
     const body = {
       ...form,
-      discount_rate: Number(form.discount_rate),
       description: form.description || null,
     };
 
@@ -143,7 +139,15 @@ export default function SaleEventsClient({
     }
   }
 
-  const filtered = filter === 'all' ? events : events.filter((ev) => ev.status === filter);
+  const eventsWithStatus = events.map((ev) => ({
+    ...ev,
+    computedStatus: computeSaleStatus(ev.start_date, ev.end_date),
+  }));
+
+  const filtered =
+    filter === 'all'
+      ? eventsWithStatus
+      : eventsWithStatus.filter((ev) => ev.computedStatus === filter);
 
   return (
     <div>
@@ -158,7 +162,6 @@ export default function SaleEventsClient({
         </button>
       </div>
 
-      {/* Filter tabs */}
       <div className="flex gap-2 mb-4">
         {[{ value: 'all', label: '전체' }, ...STATUSES].map((s) => (
           <button
@@ -175,7 +178,6 @@ export default function SaleEventsClient({
         ))}
       </div>
 
-      {/* Form Modal */}
       {showForm && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
           <div className="bg-slate-900 border border-slate-700 rounded-xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
@@ -238,32 +240,12 @@ export default function SaleEventsClient({
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm text-slate-400 mb-1">할인율 (%) *</label>
-                <input
-                  required
-                  type="number"
-                  min="1"
-                  max="100"
-                  value={form.discount_rate}
-                  onChange={(e) => setForm({ ...form, discount_rate: e.target.value })}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500"
-                  placeholder="20"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm text-slate-400 mb-1">상태</label>
-                <select
-                  value={form.status}
-                  onChange={(e) => setForm({ ...form, status: e.target.value as typeof form.status })}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500"
-                >
-                  {STATUSES.map((s) => (
-                    <option key={s.value} value={s.value}>{s.label}</option>
-                  ))}
-                </select>
-              </div>
+              {form.start_date && form.end_date && (
+                <div className="text-xs text-slate-400">
+                  상태는 날짜에 따라 자동 계산됩니다 →{' '}
+                  {statusBadge(computeSaleStatus(form.start_date, form.end_date))}
+                </div>
+              )}
 
               <div>
                 <label className="block text-sm text-slate-400 mb-1">설명</label>
@@ -299,7 +281,6 @@ export default function SaleEventsClient({
         </div>
       )}
 
-      {/* Table */}
       <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
         <table className="w-full text-sm">
           <thead>
@@ -307,7 +288,6 @@ export default function SaleEventsClient({
               <th className="text-left px-4 py-3 text-slate-400 font-medium">브랜드</th>
               <th className="text-left px-4 py-3 text-slate-400 font-medium">제목</th>
               <th className="text-left px-4 py-3 text-slate-400 font-medium">기간</th>
-              <th className="text-left px-4 py-3 text-slate-400 font-medium">할인율</th>
               <th className="text-left px-4 py-3 text-slate-400 font-medium">상태</th>
               <th className="px-4 py-3" />
             </tr>
@@ -328,8 +308,7 @@ export default function SaleEventsClient({
                 <td className="px-4 py-3 text-slate-400 text-xs">
                   {ev.start_date} ~ {ev.end_date}
                 </td>
-                <td className="px-4 py-3 text-indigo-400 font-semibold">{ev.discount_rate}%</td>
-                <td className="px-4 py-3">{statusBadge(ev.status)}</td>
+                <td className="px-4 py-3">{statusBadge(ev.computedStatus)}</td>
                 <td className="px-4 py-3">
                   <div className="flex items-center justify-end gap-2">
                     <button
@@ -350,7 +329,7 @@ export default function SaleEventsClient({
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-12 text-center text-slate-500">
+                <td colSpan={5} className="px-4 py-12 text-center text-slate-500">
                   이벤트가 없습니다. 추가해보세요.
                 </td>
               </tr>

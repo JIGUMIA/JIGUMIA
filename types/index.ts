@@ -18,7 +18,7 @@ export interface SaleEvent {
   title: string;
   start_date: string;
   end_date: string;
-  discount_rate: string;
+  discount_rate: string | null;
   description: string | null;
   status: SaleStatus;
   created_at: string;
