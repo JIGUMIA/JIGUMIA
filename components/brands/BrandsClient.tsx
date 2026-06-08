@@ -13,7 +13,7 @@ interface Brand {
   description: string | null;
 }
 
-const CATEGORIES = ['패션', '뷰티', '라이프스타일', '식품', '전자', '쇼핑몰', '기타'];
+const CATEGORIES = ['패션', '뷰티', '식품', '전자기기', '라이프', '종합'];
 
 const emptyForm = { name: '', category: '', website_url: '', color: '#6C63FF', logo_url: '', description: '' };
 
