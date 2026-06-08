@@ -8,17 +8,20 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   const { id } = await params;
   const body = await req.json();
-  const { name, category, website_url, color, logo_url } = body;
+  const { name, category, website_url, color, logo_url, description } = body;
 
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from('brands')
-    .update({ name, category, website_url, color, logo_url })
+    .update({ name, category, website_url, color, logo_url, description })
     .eq('id', id)
     .select()
     .single();
 
-  if (error) return NextResponse.json({ error: 'DB error' }, { status: 500 });
+  if (error) {
+    console.error('[brands:patch] DB error:', error);
+    return NextResponse.json({ error: error.message, details: error }, { status: 500 });
+  }
   return NextResponse.json(data);
 }
 
@@ -30,6 +33,9 @@ export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id:
   const supabase = createAdminClient();
   const { error } = await supabase.from('brands').delete().eq('id', id);
 
-  if (error) return NextResponse.json({ error: 'DB error' }, { status: 500 });
+  if (error) {
+    console.error('[brands:delete] DB error:', error);
+    return NextResponse.json({ error: error.message, details: error }, { status: 500 });
+  }
   return NextResponse.json({ success: true });
 }

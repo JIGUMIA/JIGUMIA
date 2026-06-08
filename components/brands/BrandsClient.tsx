@@ -10,11 +10,12 @@ interface Brand {
   website_url: string;
   color: string | null;
   logo_url: string | null;
+  description: string | null;
 }
 
 const CATEGORIES = ['패션', '뷰티', '라이프스타일', '식품', '전자', '쇼핑몰', '기타'];
 
-const emptyForm = { name: '', category: '', website_url: '', color: '#6C63FF', logo_url: '' };
+const emptyForm = { name: '', category: '', website_url: '', color: '#6C63FF', logo_url: '', description: '' };
 
 export default function BrandsClient({ initialBrands }: { initialBrands: Brand[] }) {
   const [brands, setBrands] = useState<Brand[]>(initialBrands);
@@ -39,6 +40,7 @@ export default function BrandsClient({ initialBrands }: { initialBrands: Brand[]
       website_url: brand.website_url,
       color: brand.color ?? '#6C63FF',
       logo_url: brand.logo_url ?? '',
+      description: brand.description ?? '',
     });
     setShowForm(true);
     setError('');
@@ -55,31 +57,34 @@ export default function BrandsClient({ initialBrands }: { initialBrands: Brand[]
     setLoading(true);
     setError('');
 
-    const body = { ...form, logo_url: form.logo_url || null };
+    const body = {
+      ...form,
+      logo_url: form.logo_url || null,
+      description: form.description || null,
+    };
 
     try {
+      const url = editing ? `/api/brands/${editing.id}` : '/api/brands';
+      const method = editing ? 'PATCH' : 'POST';
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const payload = await res.json().catch(() => ({}));
+        throw new Error(payload?.error ?? `HTTP ${res.status}`);
+      }
+      const saved: Brand = await res.json();
       if (editing) {
-        const res = await fetch(`/api/brands/${editing.id}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-        });
-        if (!res.ok) throw new Error(await res.text());
-        const updated: Brand = await res.json();
-        setBrands((prev) => prev.map((b) => (b.id === updated.id ? updated : b)));
+        setBrands((prev) => prev.map((b) => (b.id === saved.id ? saved : b)));
       } else {
-        const res = await fetch('/api/brands', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-        });
-        if (!res.ok) throw new Error(await res.text());
-        const created: Brand = await res.json();
-        setBrands((prev) => [...prev, created].sort((a, b) => a.name.localeCompare(b.name)));
+        setBrands((prev) => [...prev, saved].sort((a, b) => a.name.localeCompare(b.name)));
       }
       closeForm();
-    } catch {
-      setError('저장 중 오류가 발생했습니다.');
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : '알 수 없는 오류';
+      setError(`저장 중 오류가 발생했습니다: ${msg}`);
     } finally {
       setLoading(false);
     }
@@ -190,6 +195,20 @@ export default function BrandsClient({ initialBrands }: { initialBrands: Brand[]
                 />
               </div>
 
+              <div>
+                <label className="block text-sm text-slate-400 mb-1">
+                  브랜드 설명
+                  <span className="text-slate-500 ml-1">({form.description.length}자)</span>
+                </label>
+                <textarea
+                  rows={4}
+                  value={form.description}
+                  onChange={(e) => setForm({ ...form, description: e.target.value })}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500 resize-none"
+                  placeholder="브랜드를 소개하는 2-3 문장. 앱에 노출됩니다."
+                />
+              </div>
+
               {error && <p className="text-red-400 text-sm">{error}</p>}
 
               <div className="flex gap-3 pt-2">
@@ -220,6 +239,7 @@ export default function BrandsClient({ initialBrands }: { initialBrands: Brand[]
             <tr className="border-b border-slate-800">
               <th className="text-left px-4 py-3 text-slate-400 font-medium">브랜드</th>
               <th className="text-left px-4 py-3 text-slate-400 font-medium">카테고리</th>
+              <th className="text-left px-4 py-3 text-slate-400 font-medium">설명</th>
               <th className="text-left px-4 py-3 text-slate-400 font-medium">웹사이트</th>
               <th className="text-left px-4 py-3 text-slate-400 font-medium">색상</th>
               <th className="px-4 py-3" />
@@ -230,6 +250,11 @@ export default function BrandsClient({ initialBrands }: { initialBrands: Brand[]
               <tr key={brand.id} className="border-b border-slate-800 last:border-0 hover:bg-slate-800/40 transition-colors">
                 <td className="px-4 py-3 text-white font-medium">{brand.name}</td>
                 <td className="px-4 py-3 text-slate-300">{brand.category}</td>
+                <td className="px-4 py-3 text-slate-400 text-xs max-w-[280px]">
+                  <div className="line-clamp-2" title={brand.description ?? ''}>
+                    {brand.description ?? <span className="text-slate-600">-</span>}
+                  </div>
+                </td>
                 <td className="px-4 py-3">
                   <a
                     href={brand.website_url}
@@ -269,7 +294,7 @@ export default function BrandsClient({ initialBrands }: { initialBrands: Brand[]
             ))}
             {brands.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-12 text-center text-slate-500">
+                <td colSpan={6} className="px-4 py-12 text-center text-slate-500">
                   브랜드가 없습니다. 추가해보세요.
                 </td>
               </tr>

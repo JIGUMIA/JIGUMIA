@@ -9,6 +9,7 @@ export interface Brand {
   category: Category;
   website_url: string;
   color: string | null;
+  description: string | null;
   created_at: string;
 }
 
