@@ -1,169 +1,147 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
-import Image from 'next/image';
+import { LegalPage, Section, Em, MailLink } from '@/components/site/LegalPage';
 
 export const metadata: Metadata = {
-  title: '개인정보 처리방침 — JIGUMIA',
+  title: 'JIGUMIA 개인정보처리방침',
+  description:
+    '모바일 앱 JIGUMIA(지구미아)가 수집하는 정보, 사용 목적, 보관 및 파기, 이용자의 권리에 대한 안내입니다.',
 };
+
+const UPDATED_AT = '2026년 7월 17일';
 
 export default function PrivacyPage() {
   return (
-    <div className="min-h-screen bg-[#FAFAF8]">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-100">
-        <div className="max-w-3xl mx-auto px-6 h-16 flex items-center gap-2.5">
-          <Link href="/" className="flex items-center gap-2.5">
-            <Image src="/logo.png" alt="JIGUMIA" width={32} height={32} className="rounded-xl" />
-            <span className="font-bold text-[#111111] text-lg tracking-tight">JIGUMIA</span>
-          </Link>
-        </div>
-      </header>
+    <LegalPage title="개인정보처리방침" meta={`최종 업데이트: ${UPDATED_AT}`}>
+      <Section title="1. 개요">
+        <p>
+          JIGUMIA(지구미아, 이하 &ldquo;본 앱&rdquo;)는 여러 브랜드의 세일 일정을 캘린더 형태로 모아
+          보고, 관심 브랜드의 세일을 알림으로 받아볼 수 있는 모바일 애플리케이션입니다. 본 앱은
+          JIGUMIA가 운영하며, 본 방침은 본 앱이 수집하는 정보의 항목과 이용 목적, 보관 및 파기,
+          이용자의 권리에 관한 사항을 설명합니다. 문의 사항은 <MailLink /> 으로 연락 부탁드립니다.
+        </p>
+      </Section>
 
-      {/* Content */}
-      <main className="max-w-3xl mx-auto px-6 py-16">
-        <h1 className="text-3xl font-black text-[#111111] mb-2">개인정보 처리방침</h1>
-        <p className="text-gray-400 text-sm mb-12">시행일: 2025년 4월 1일</p>
+      <Section title="2. 수집하는 정보의 항목">
+        <p className="mb-3">본 앱은 다음 정보를 수집합니다.</p>
+        <ul className="ml-5 list-disc space-y-1.5">
+          <li>
+            <Em>계정 정보</Em> — 로그인을 위한 이메일 주소와 고유 식별자. Google 또는 Apple 계정으로
+            로그인할 때 해당 제공자로부터 전달받으며, Apple 로그인 시 이용자가 동의한 경우 이름이
+            포함될 수 있습니다.
+          </li>
+          <li>
+            <Em>기기 푸시 토큰</Em> — 세일 알림 발송을 위한 푸시 토큰과 기기 플랫폼(iOS/Android)
+            정보. 알림을 사용하는 경우에만 저장됩니다.
+          </li>
+          <li>
+            <Em>이용자 설정</Em> — 이용자가 선택한 관심 브랜드와 브랜드별 알림 설정(세일 시작 전·종료
+            전 알림 등).
+          </li>
+          <li>
+            <Em>문의 내역</Em> — 앱 내 문의하기 기능을 이용한 경우 이메일 주소, 문의 제목 및 내용.
+          </li>
+          <li>
+            <Em>광고 식별자 및 기기 정보</Em> — 앱 내 광고 제공을 위해 Google AdMob이 광고 식별자(Google
+            광고 ID, iOS 광고 식별자(IDFA))와 기기 종류·운영체제·대략적 지역·IP 주소 등을 수집할 수
+            있습니다.
+          </li>
+        </ul>
+        <p className="mt-3">
+          본 앱은 위치 정보, 연락처, 사진, 전화번호, 결제 정보 등 위에 명시되지 않은 개인정보를
+          수집하지 않습니다.
+        </p>
+      </Section>
 
-        <div className="bg-white rounded-2xl p-8 shadow-sm space-y-10 text-gray-600 leading-relaxed">
-          <p className="pb-6 border-b border-gray-100">
-            JIGUMIA(이하 &quot;회사&quot;)는 이용자의 개인정보를 중요시하며, 「개인정보 보호법」 등 관련 법령을 준수합니다. 본 개인정보 처리방침은 회사가 수집하는 개인정보의 항목, 수집 목적, 보유 기간 등을 안내합니다.
-          </p>
+      <Section title="3. 정보의 이용 목적">
+        <p className="mb-3">수집된 정보는 다음 목적으로만 사용됩니다.</p>
+        <ul className="ml-5 list-disc space-y-1.5">
+          <li>회원 식별 및 로그인 인증</li>
+          <li>관심 브랜드 및 알림 설정의 저장·조회·동기화</li>
+          <li>이용자가 설정한 브랜드 세일에 대한 푸시 알림 발송</li>
+          <li>문의 접수 및 답변 제공</li>
+          <li>서비스 이용 통계 집계 및 품질 개선</li>
+          <li>앱 내 광고 제공</li>
+        </ul>
+        <p className="mt-3">
+          본 앱은 Google AdMob을 통해 앱 내에 광고를 게재합니다. 광고는 이용자의 동의와 지역 설정에
+          따라 맞춤형(개인화) 또는 비맞춤형(non-personalized) 광고로 제공됩니다. 유럽(EEA) 등 관련
+          규정이 적용되는 지역에서는 Google의 사용자 동의 관리 도구(UMP)를 통해 동의 여부를 확인하며,
+          동의하지 않은 경우 비맞춤형 광고만 제공됩니다. 광고 제공 과정에서 Google AdMob이 광고
+          식별자와 기기 정보를 수집할 수 있으며, 자세한 내용은 아래 4. 제3자 서비스 항목을 참고해
+          주시기 바랍니다.
+        </p>
+      </Section>
 
-          <section>
-            <h2 className="text-lg font-bold text-[#111111] mb-3">1. 수집하는 개인정보 항목</h2>
-            <p className="mb-3">회사는 서비스 제공을 위해 다음의 개인정보를 수집합니다.</p>
-            <p className="font-semibold text-[#111111] text-sm mb-1">[필수 항목]</p>
-            <ul className="list-disc list-inside space-y-1 text-sm mb-3">
-              <li>이메일 주소</li>
-              <li>이름 (Google/Apple 계정에서 제공)</li>
-              <li>고유 사용자 식별자 (OAuth ID)</li>
-            </ul>
-            <p className="font-semibold text-[#111111] text-sm mb-1">[자동 수집 항목]</p>
-            <ul className="list-disc list-inside space-y-1 text-sm">
-              <li>기기 정보 (OS 종류, 앱 버전)</li>
-              <li>서비스 이용 기록 (접속 일시, 관심 브랜드 목록)</li>
-            </ul>
-          </section>
+      <Section title="4. 제3자 서비스 및 처리 위탁">
+        <p className="mb-3">
+          본 앱은 서비스 운영을 위해 다음 제3자 서비스를 이용하며, 각 제공자는 자체 정책에 따라 정보를
+          처리합니다.
+        </p>
+        <ul className="ml-5 list-disc space-y-1.5">
+          <li>
+            <Em>Supabase</Em> — 계정 인증 및 데이터베이스 호스팅. 이용자의 계정 정보, 관심
+            브랜드·알림 설정, 푸시 토큰, 문의 내역이 Supabase 인프라에 안전하게 저장됩니다.
+          </li>
+          <li>
+            <Em>Google</Em> — 소셜 로그인을 선택한 경우 본인 인증에 사용됩니다.
+          </li>
+          <li>
+            <Em>Apple</Em> — 소셜 로그인을 선택한 경우 본인 인증에 사용됩니다.
+          </li>
+          <li>
+            <Em>Expo Notifications</Em> — 푸시 알림 전송을 위해 사용되며, Apple(APNs) 및 Google(FCM)의
+            푸시 인프라를 경유해 기기로 알림이 전달됩니다.
+          </li>
+          <li>
+            <Em>Google AdMob</Em> — 앱 내 광고 게재 및 광고 성과 측정에 사용됩니다. 광고 제공
+            과정에서 광고 식별자, 기기 정보, IP 주소 등이 수집·처리될 수 있으며, 처리 방식은 Google의{' '}
+            <a
+              className="font-medium underline underline-offset-2"
+              style={{ color: '#6C63FF' }}
+              href="https://policies.google.com/technologies/partner-sites"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              파트너 사이트에서의 데이터 사용 방침
+            </a>
+            을 따릅니다.
+          </li>
+        </ul>
+        <p className="mt-3">
+          본 앱은 위 목적 외에 이용자의 개인정보를 제3자에게 판매하지 않습니다.
+        </p>
+      </Section>
 
-          <section>
-            <h2 className="text-lg font-bold text-[#111111] mb-3">2. 개인정보 수집 방법</h2>
-            <ul className="list-disc list-inside space-y-1 text-sm">
-              <li>Google 계정 로그인 시 OAuth 인증을 통해 수집</li>
-              <li>Apple 계정 로그인 시 Sign in with Apple을 통해 수집</li>
-              <li>서비스 이용 과정에서 자동으로 생성·수집</li>
-            </ul>
-          </section>
+      <Section title="5. 정보의 보관 및 파기">
+        <p>
+          이용자의 정보는 회원 자격이 유지되는 동안 보관됩니다. 이용자가 앱 내{' '}
+          <Em>마이페이지 &gt; 회원 탈퇴</Em> 메뉴를 통해 탈퇴하면 계정 정보, 관심 브랜드, 알림 설정,
+          푸시 토큰, 문의 내역을 포함한 이용자의 모든 데이터가 즉시 영구적으로 삭제되며 복구할 수
+          없습니다.
+        </p>
+      </Section>
 
-          <section>
-            <h2 className="text-lg font-bold text-[#111111] mb-3">3. 개인정보의 수집 및 이용 목적</h2>
-            <p className="mb-3">회사는 수집한 개인정보를 다음의 목적으로 이용합니다.</p>
-            <ul className="list-disc list-inside space-y-1 text-sm">
-              <li>회원 가입 및 관리: 회원 식별, 본인 확인</li>
-              <li>서비스 제공: 관심 브랜드 저장, 세일 알림 발송</li>
-              <li>서비스 개선: 이용 통계 분석, 서비스 품질 향상</li>
-              <li>고객 지원: 문의 접수 및 답변, 공지사항 전달</li>
-            </ul>
-          </section>
+      <Section title="6. 이용자의 권리">
+        <p>
+          이용자는 앱 내에서 언제든지 관심 브랜드와 알림 설정을 변경하거나 푸시 알림 수신을 중단할 수
+          있으며, 회원 탈퇴를 통해 계정과 관련된 모든 정보의 삭제를 직접 요청할 수 있습니다. 추가적인
+          권리 행사나 문의는 위 운영자 이메일로 요청해 주시기 바랍니다.
+        </p>
+      </Section>
 
-          <section>
-            <h2 className="text-lg font-bold text-[#111111] mb-3">4. 개인정보의 보유 및 이용 기간</h2>
-            <p className="mb-3">
-              회원의 개인정보는 서비스 이용 기간 동안 보유하며, 다음의 경우 지체 없이 파기합니다.
-            </p>
-            <ul className="list-disc list-inside space-y-1 text-sm mb-3">
-              <li>회원 탈퇴 시: 즉시 파기</li>
-              <li>서비스 종료 시: 종료일로부터 30일 이내 파기</li>
-            </ul>
-            <p className="text-sm">
-              단, 관련 법령에 따라 보존이 필요한 경우 해당 기간 동안 보관합니다.
-            </p>
-            <ul className="list-disc list-inside space-y-1 text-sm mt-1">
-              <li>전자상거래법에 따른 계약·청약 철회 기록: 5년</li>
-              <li>로그인 기록: 3개월</li>
-            </ul>
-          </section>
+      <Section title="7. 아동의 개인정보">
+        <p>
+          본 앱은 만 14세 미만 아동을 대상으로 하지 않으며, 아동의 개인정보를 고의로 수집하지
+          않습니다. 아동의 정보가 수집된 사실이 확인될 경우 해당 정보는 즉시 삭제됩니다.
+        </p>
+      </Section>
 
-          <section>
-            <h2 className="text-lg font-bold text-[#111111] mb-3">5. 개인정보의 제3자 제공</h2>
-            <p className="mb-3">
-              회사는 원칙적으로 이용자의 개인정보를 제3자에게 제공하지 않습니다. 다만, 다음의 경우에는 예외로 합니다.
-            </p>
-            <ul className="list-disc list-inside space-y-1 text-sm">
-              <li>이용자가 사전에 동의한 경우</li>
-              <li>법령에 의해 요구되는 경우</li>
-            </ul>
-          </section>
-
-          <section>
-            <h2 className="text-lg font-bold text-[#111111] mb-3">6. 개인정보의 파기 절차 및 방법</h2>
-            <ul className="list-disc list-inside space-y-1 text-sm">
-              <li>파기 절차: 보유 기간이 경과하거나 처리 목적이 달성된 개인정보는 즉시 파기합니다.</li>
-              <li>파기 방법: 전자적 파일은 복구 불가능한 방법으로 삭제하며, 종이 문서는 분쇄하거나 소각합니다.</li>
-            </ul>
-          </section>
-
-          <section>
-            <h2 className="text-lg font-bold text-[#111111] mb-3">7. 개인정보 처리의 위탁</h2>
-            <p className="mb-3">회사는 서비스 운영을 위해 다음과 같이 개인정보 처리를 위탁합니다.</p>
-            <ul className="list-disc list-inside space-y-1 text-sm">
-              <li>Supabase (데이터베이스 및 인증 서비스)</li>
-              <li className="ml-4 list-none">- 위탁 업무: 회원 정보 저장 및 인증</li>
-              <li className="ml-4 list-none">- 보유 기간: 위탁 계약 종료 시까지</li>
-            </ul>
-          </section>
-
-          <section>
-            <h2 className="text-lg font-bold text-[#111111] mb-3">8. 이용자의 권리와 행사 방법</h2>
-            <p className="mb-3">이용자는 언제든지 다음의 권리를 행사할 수 있습니다.</p>
-            <ul className="list-disc list-inside space-y-1 text-sm mb-3">
-              <li>개인정보 열람 요청</li>
-              <li>개인정보 수정 요청</li>
-              <li>개인정보 삭제 요청 (회원 탈퇴)</li>
-              <li>처리 정지 요청</li>
-            </ul>
-            <p className="text-sm">
-              위 권리는 앱 내 &quot;마이페이지&quot; 또는 이메일(support@jigumia.app)을 통해 행사할 수 있습니다.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-lg font-bold text-[#111111] mb-3">9. 개인정보 보호책임자</h2>
-            <ul className="list-none space-y-1 text-sm">
-              <li>책임자: JIGUMIA Team</li>
-              <li>이메일: support@jigumia.app</li>
-            </ul>
-            <p className="text-sm mt-3">
-              개인정보 관련 문의, 불만 처리 등은 위 연락처로 문의해 주시기 바랍니다.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-lg font-bold text-[#111111] mb-3">10. 개인정보 처리방침 변경</h2>
-            <p className="text-sm">
-              본 개인정보 처리방침은 법령이나 서비스 변경에 따라 수정될 수 있으며, 변경 시 앱 내 공지를 통해 안내합니다.
-            </p>
-          </section>
-
-          <p className="text-sm text-gray-400 pt-6 border-t border-gray-100">
-            본 개인정보 처리방침은 2025년 4월 1일부터 시행됩니다.
-          </p>
-        </div>
-      </main>
-
-      {/* Footer */}
-      <footer className="border-t border-gray-100 bg-white py-8 mt-8">
-        <div className="max-w-3xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-gray-400">
-          <p>&copy; 2025 JIGUMIA. All rights reserved.</p>
-          <div className="flex gap-4">
-            <Link href="/terms" className="hover:text-gray-600 transition-colors">
-              이용약관
-            </Link>
-            <Link href="/" className="hover:text-gray-600 transition-colors">
-              홈으로
-            </Link>
-          </div>
-        </div>
-      </footer>
-    </div>
+      <Section title="8. 방침의 변경">
+        <p>
+          본 개인정보처리방침은 법령 및 서비스 변경 사항을 반영하기 위해 수정될 수 있습니다. 변경
+          시에는 본 페이지의 &ldquo;최종 업데이트&rdquo; 일자가 함께 갱신됩니다.
+        </p>
+      </Section>
+    </LegalPage>
   );
 }
