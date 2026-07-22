@@ -10,6 +10,14 @@ import {
   DetailScreen,
 } from '@/components/site/PhoneMock';
 import { BrandMarquee } from '@/components/site/BrandMarquee';
+import {
+  Reveal,
+  Stagger,
+  StaggerItem,
+  PhoneReveal,
+  HeroStagger,
+  HeroItem,
+} from '@/components/site/Motion';
 import { getLandingBrands } from '@/lib/site/landing-data';
 import { getMockScreens } from '@/lib/site/mock-screens';
 
@@ -162,26 +170,34 @@ export default async function LandingPage() {
           className="pointer-events-none absolute -left-[20%] top-[42%] h-[130vw] w-[130vw] rounded-full"
           style={{ backgroundColor: HERO_CIRCLE }}
         />
-        <div className="relative mx-auto max-w-3xl">
-          <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.45em] text-white/55">
-            JIGUMIA
-          </p>
-          <h1 className="text-5xl font-black leading-[1.15] tracking-tight text-white md:text-6xl">
-            지금이야!
-          </h1>
-          <p className="mt-4 text-base font-medium text-white/75 md:text-lg">
-            놓치면 아까운 세일, 딱 맞게 알려줄게
-          </p>
-
-          <p className="mx-auto mt-10 max-w-xl text-[15px] leading-relaxed text-white/75 md:text-base">
-            올리브영, 무신사, 29cm 등 주요 브랜드의 할인 일정을 캘린더 하나로 모아 보고,
-            <br className="hidden md:block" /> 세일 시작 전 알림을 받아보세요.
-          </p>
-
-          <div className="mt-10">
-            <StoreButtons />
+        <HeroStagger>
+          <div className="relative mx-auto max-w-3xl">
+            <HeroItem>
+              <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.45em] text-white/55">
+                JIGUMIA
+              </p>
+            </HeroItem>
+            <HeroItem>
+              <h1 className="text-5xl font-black leading-[1.15] tracking-tight text-white md:text-6xl">
+                지금이야!
+              </h1>
+            </HeroItem>
+            <HeroItem>
+              <p className="mt-4 text-base font-medium text-white/75 md:text-lg">
+                놓치면 아까운 세일, 딱 맞게 알려줄게
+              </p>
+            </HeroItem>
+            <HeroItem>
+              <p className="mx-auto mt-10 max-w-xl text-[15px] leading-relaxed text-white/75 md:text-base">
+                올리브영, 무신사, 29cm 등 주요 브랜드의 할인 일정을 캘린더 하나로 모아 보고,
+                <br className="hidden md:block" /> 세일 시작 전 알림을 받아보세요.
+              </p>
+            </HeroItem>
+            <HeroItem className="mt-10">
+              <StoreButtons />
+            </HeroItem>
           </div>
-        </div>
+        </HeroStagger>
       </section>
 
       {/* 앱 화면 쇼케이스 */}
@@ -194,14 +210,21 @@ export default async function LandingPage() {
               }`}
             >
               <div className="flex shrink-0 justify-center">
-                <PhoneFrame>{s.screen}</PhoneFrame>
+                {/* 좌우 번갈아 들어와 섹션이 이어지는 흐름으로 읽히게 한다 */}
+                <PhoneReveal from={i % 2 === 1 ? 'right' : 'left'}>
+                  <PhoneFrame>{s.screen}</PhoneFrame>
+                </PhoneReveal>
               </div>
-              <div className="max-w-lg text-center lg:text-left">
-                <h3 className="text-[1.75rem] font-black leading-snug tracking-tight text-[#2A2450] md:text-[2rem]">
-                  {s.headline}
-                </h3>
-                <p className="mt-5 text-[15px] leading-[1.85] text-[#4A4470]">{s.body}</p>
-              </div>
+              <Stagger className="max-w-lg text-center lg:text-left" gap={0.14}>
+                <StaggerItem direction={i % 2 === 1 ? 'left' : 'right'}>
+                  <h3 className="text-[1.75rem] font-black leading-snug tracking-tight text-[#2A2450] md:text-[2rem]">
+                    {s.headline}
+                  </h3>
+                </StaggerItem>
+                <StaggerItem direction={i % 2 === 1 ? 'left' : 'right'}>
+                  <p className="mt-5 text-[15px] leading-[1.85] text-[#4A4470]">{s.body}</p>
+                </StaggerItem>
+              </Stagger>
             </div>
           </section>
         ))}
@@ -209,10 +232,12 @@ export default async function LandingPage() {
 
       {/* Features */}
       <section className="mx-auto max-w-5xl px-6 py-24">
-        <h2 className="mb-14 text-center text-3xl font-black text-[#111111]">주요 기능</h2>
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+        <Reveal>
+          <h2 className="mb-14 text-center text-3xl font-black text-[#111111]">주요 기능</h2>
+        </Reveal>
+        <Stagger className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {FEATURES.map(({ icon: Icon, title, desc }) => (
-            <div key={title} className="rounded-2xl bg-white p-6 text-center shadow-sm">
+            <StaggerItem key={title} className="rounded-2xl bg-white p-6 text-center shadow-sm">
               <div
                 className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl"
                 style={{ backgroundColor: `${PURPLE}18` }}
@@ -221,19 +246,19 @@ export default async function LandingPage() {
               </div>
               <h3 className="mb-2 font-bold text-[#111111]">{title}</h3>
               <p className="text-sm leading-relaxed text-gray-400">{desc}</p>
-            </div>
+            </StaggerItem>
           ))}
-        </div>
+        </Stagger>
       </section>
 
       {/* Brands */}
       <section className="overflow-hidden bg-white py-20">
-        <div className="mx-auto max-w-5xl px-6 text-center">
+        <Reveal className="mx-auto max-w-5xl px-6 text-center">
           <h2 className="mb-3 text-3xl font-black text-[#111111]">지원 브랜드</h2>
           <p className="mb-12 text-sm text-gray-400">
             현재 {brands.length}개 브랜드 · 계속 추가되고 있어요
           </p>
-        </div>
+        </Reveal>
         <BrandMarquee brands={brands} />
       </section>
 
@@ -246,21 +271,23 @@ export default async function LandingPage() {
           className="pointer-events-none absolute -right-[25%] -top-[35%] h-[90vw] w-[90vw] rounded-full"
           style={{ backgroundColor: HERO_CIRCLE }}
         />
-        <div className="relative">
-          <h2 className="text-4xl font-black leading-[1.3] tracking-tight md:text-5xl">
-            지금 바로
-            <br />
-            다운로드 하세요
-          </h2>
-          <div className="mt-10">
+        <Stagger className="relative" gap={0.16}>
+          <StaggerItem>
+            <h2 className="text-4xl font-black leading-[1.3] tracking-tight md:text-5xl">
+              지금 바로
+              <br />
+              다운로드 하세요
+            </h2>
+          </StaggerItem>
+          <StaggerItem className="mt-10">
             <StoreButtons />
-          </div>
-        </div>
+          </StaggerItem>
+        </Stagger>
       </section>
 
       {/* 문의 및 지원 */}
       <section className="mx-auto max-w-5xl px-6 py-20 text-center">
-        <div className="mx-auto max-w-xl rounded-2xl bg-white p-8 shadow-sm">
+        <Reveal className="mx-auto max-w-xl rounded-2xl bg-white p-8 shadow-sm">
           <h3 className="mb-3 font-bold text-[#111111]">문의 및 지원</h3>
           <p className="text-sm leading-relaxed text-gray-400">
             앱 사용 중 문제가 있거나 기능 제안, 문의 사항이 있다면
@@ -274,7 +301,7 @@ export default async function LandingPage() {
           >
             jigumia0226@gmail.com →
           </a>
-        </div>
+        </Reveal>
       </section>
 
       {/* Footer */}
