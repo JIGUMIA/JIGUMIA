@@ -96,6 +96,53 @@ UPSTASH_REDIS_REST_URL
 UPSTASH_REDIS_REST_TOKEN
 ```
 
+## Daily Sale Maintenance
+
+사용자가 **"유지보수 해줘"** 라고 하면 아래 4단계를 순서대로 실행:
+
+**Step 1 — 포인터 파일 읽기 (메인 세션에서 Read 툴로 직접)**
+```
+Read: /Users/kohjoowon/.claude/projects/-Users-kohjoowon-jigumia-admin/sale-maintenance-pointer.json
+```
+파일이 없으면 `checkedBrandIds: []` 로 시작.
+
+**Step 2 — 워크플로우 스크립트 상수 설정 (메인 세션에서 Edit 툴로 직접)**
+
+`.claude/workflows/sale-maintenance.js` 의 상단 3개 상수를 Edit 툴로 교체:
+```javascript
+const TODAY = '2026-07-06'              // ← 오늘 날짜로
+const URGENCY_THRESHOLD = '2026-07-09' // ← 오늘 + 3일로
+const PREV_CHECKED_IDS = [...]          // ← Step 1에서 읽은 checkedBrandIds 배열로
+```
+
+**Step 3 — Workflow 호출 (scriptPath 사용)**
+```javascript
+Workflow({
+  scriptPath: '/Users/kohjoowon/jigumia-admin/.claude/workflows/sale-maintenance.js'
+})
+```
+
+**Step 4 — 완료 후 포인터 파일 저장 (메인 세션에서 Write 툴로 직접)**
+
+워크플로우 결과의 `newCheckedBrandIds`를 받아 포인터 파일에 저장:
+```json
+{ "checkedBrandIds": [...], "lastRunDate": "YYYY-MM-DD" }
+```
+저장 경로: `/Users/kohjoowon/.claude/projects/-Users-kohjoowon-jigumia-admin/sale-maintenance-pointer.json`
+
+**왜 이 구조인가:**
+- 워크플로우 에이전트의 파일 I/O는 신뢰 불가 → 메인 세션이 Read/Write로 직접 처리
+- `args`를 named workflow(`name:`)에 전달하면 수신되지 않는 버그 존재 → Edit으로 상수 직접 주입 + `scriptPath:` 사용
+- Edit 툴은 결정적(deterministic)이므로 100% 신뢰 가능
+
+**동작 방식:**
+- `PREV_CHECKED_IDS`에 없는 브랜드 중 앞에서 12개 선택 (알파벳순)
+- 긴급(만료 3일 이내) 브랜드는 배치와 별도로 항상 추가
+- 완료 후 `newCheckedBrandIds` 반환 → 메인 세션이 포인터 파일 저장
+
+**같은 날 여러 번 실행:** 포인터가 계속 앞으로 이동 → 매번 다음 12개  
+**다음 날 실행:** 포인터 위치 이어받아서 계속 → 42개 모두 완료 시 자동 리셋
+
 ## Deployment (Vercel)
 
 ```bash

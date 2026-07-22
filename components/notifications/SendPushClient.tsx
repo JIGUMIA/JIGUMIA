@@ -1,7 +1,7 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { Bell, Send, Users, Tag } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Bell, Send, Users, Tag, Smartphone } from 'lucide-react';
 
 interface Brand {
   id: string;
@@ -21,22 +21,55 @@ interface RecentItem {
 interface Props {
   brands: Brand[];
   tokenCount: number;
+  userCount: number;
   recentMarketing: RecentItem[];
+}
+
+interface RecipientStats {
+  users: number;
+  devices: number;
+  ios: number;
+  android: number;
+  unknown: number;
 }
 
 const TITLE_MAX = 65;
 const BODY_MAX = 240;
 
-export default function SendPushClient({ brands, tokenCount, recentMarketing }: Props) {
+export default function SendPushClient({ brands, tokenCount, userCount, recentMarketing }: Props) {
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [deepLink, setDeepLink] = useState('');
   const [target, setTarget] = useState<'all' | 'brand'>('all');
   const [brandId, setBrandId] = useState<string>(brands[0]?.id ?? '');
   const [submitting, setSubmitting] = useState(false);
-  const [result, setResult] = useState<{ sent: number; dead: number; target_count: number } | null>(null);
+  const [result, setResult] = useState<{ sent: number; dead: number; target_count: number; user_count?: number; device_count?: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [preview, setPreview] = useState<RecipientStats | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+
+  // 발송 대상(전체/브랜드)이 바뀔 때마다 대상 유저·기기 수를 미리 조회한다.
+  useEffect(() => {
+    let cancelled = false;
+    if (target === 'brand' && !brandId) {
+      setPreview(null);
+      return;
+    }
+    setPreviewLoading(true);
+    const params = new URLSearchParams({ target });
+    if (target === 'brand') params.set('brand_id', brandId);
+    fetch(`/api/notifications/recipients?${params.toString()}`)
+      .then((r) => r.json())
+      .then((json) => {
+        if (cancelled) return;
+        if (json && typeof json.users === 'number') setPreview(json as RecipientStats);
+        else setPreview(null);
+      })
+      .catch(() => { if (!cancelled) setPreview(null); })
+      .finally(() => { if (!cancelled) setPreviewLoading(false); });
+    return () => { cancelled = true; };
+  }, [target, brandId]);
 
   const brandById = useMemo(() => new Map(brands.map((b) => [b.id, b])), [brands]);
   const canSubmit =
@@ -96,8 +129,9 @@ export default function SendPushClient({ brands, tokenCount, recentMarketing }: 
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 gap-3">
-        <Stat icon={<Users size={16} />} label="등록된 디바이스" value={`${tokenCount}대`} />
+      <div className="grid grid-cols-3 gap-3">
+        <Stat icon={<Users size={16} />} label="푸시 켠 사용자" value={`${userCount}명`} />
+        <Stat icon={<Smartphone size={16} />} label="등록된 디바이스" value={`${tokenCount}대`} />
         <Stat icon={<Tag size={16} />} label="브랜드 수" value={`${brands.length}개`} />
       </div>
 
@@ -167,10 +201,41 @@ export default function SendPushClient({ brands, tokenCount, recentMarketing }: 
           </div>
         </Field>
 
-        <div className="flex items-center justify-between pt-2">
+        {/* 발송 대상 미리보기 */}
+        <div className="rounded-lg bg-slate-950 border border-slate-700 p-3">
           <div className="text-xs text-slate-400">
             발송 대상: <span className="text-slate-200 font-medium">{targetLabel}</span>
           </div>
+          <div className="mt-2 flex items-center gap-4 text-sm">
+            {previewLoading ? (
+              <span className="text-slate-500 text-xs">대상 계산 중…</span>
+            ) : preview ? (
+              <>
+                <span className="flex items-center gap-1.5 text-slate-200">
+                  <Users size={14} className="text-indigo-400" />
+                  <span className="font-semibold">{preview.users}</span>명
+                </span>
+                <span className="flex items-center gap-1.5 text-slate-200">
+                  <Smartphone size={14} className="text-indigo-400" />
+                  <span className="font-semibold">{preview.devices}</span>대
+                </span>
+                <span className="text-[11px] text-slate-500">
+                  (iOS {preview.ios} · Android {preview.android}
+                  {preview.unknown > 0 ? ` · 기타 ${preview.unknown}` : ''})
+                </span>
+              </>
+            ) : (
+              <span className="text-slate-500 text-xs">대상 없음</span>
+            )}
+          </div>
+          {preview && preview.devices > preview.users && (
+            <div className="mt-1.5 text-[11px] text-amber-400/80">
+              ※ 일부 사용자가 기기 여러 대를 등록해 발송 건수(기기)가 사용자 수보다 많아요. 알림함에는 사용자당 1건만 기록됩니다.
+            </div>
+          )}
+        </div>
+
+        <div className="flex items-center justify-end pt-2">
           <button
             onClick={() => setConfirmOpen(true)}
             disabled={!canSubmit || submitting}
@@ -187,7 +252,7 @@ export default function SendPushClient({ brands, tokenCount, recentMarketing }: 
         <div className="rounded-xl border border-emerald-700 bg-emerald-900/20 p-4">
           <div className="text-sm text-emerald-300 font-semibold">발송 완료</div>
           <div className="mt-1 text-xs text-emerald-200/80">
-            대상 유저: {result.target_count}명 · 발송: {result.sent}건 · 만료 토큰 정리: {result.dead}건
+            대상 사용자: {result.user_count ?? result.target_count}명 · 발송 기기: {result.device_count ?? result.sent}대 · 성공: {result.sent}건 · 만료 토큰 정리: {result.dead}건
           </div>
         </div>
       )}
@@ -226,6 +291,12 @@ export default function SendPushClient({ brands, tokenCount, recentMarketing }: 
             <p className="mt-2 text-sm text-slate-300">
               <span className="text-white font-medium">{targetLabel}</span>에게 푸시를 발송합니다.
             </p>
+            {preview && (
+              <p className="mt-1 text-xs text-slate-400">
+                사용자 <span className="text-slate-200 font-semibold">{preview.users}</span>명 · 기기 <span className="text-slate-200 font-semibold">{preview.devices}</span>대
+                <span className="text-slate-500"> (iOS {preview.ios} · Android {preview.android})</span>
+              </p>
+            )}
             <div className="mt-4 rounded-lg bg-slate-950 border border-slate-700 p-3 space-y-1">
               <div className="text-sm font-semibold text-white">{title}</div>
               <div className="text-xs text-slate-400">{body}</div>

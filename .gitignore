@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# agent tooling (로컬 전용 — 세션/상태 캐시)
+/.claude/worktrees/
+/.omc/

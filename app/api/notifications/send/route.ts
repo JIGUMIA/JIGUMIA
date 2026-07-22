@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/server';
 import { verifyAdmin } from '@/lib/auth';
+import { resolveTargetUserIds } from '@/lib/notifications/targeting';
 
 const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send';
 const EXPO_TOKEN = process.env.EXPO_ACCESS_TOKEN;
@@ -77,59 +78,20 @@ export async function POST(req: NextRequest) {
 
   const supabase = createAdminClient();
 
-  // 1) target user_ids
+  // 1) target user_ids (미리보기 API와 동일한 헬퍼 사용 → 대상 일치 보장)
   let userIds: string[] = [];
-
-  if (target === 'all') {
-    const { data, error } = await supabase
-      .from('user_notification_preferences')
-      .select('user_id')
-      .eq('push_enabled', true);
-    if (error) {
-      console.error('[notify] prefs (all)', error);
-      return NextResponse.json({ error: `DB error (prefs): ${error.message}`, code: error.code, hint: error.hint }, { status: 500 });
-    }
-    userIds = (data ?? []).map((r) => r.user_id as string);
-  } else {
-    const { data: favs, error: favErr } = await supabase
-      .from('user_favorites')
-      .select('user_id')
-      .eq('brand_id', brandId!);
-    if (favErr) {
-      console.error('[notify] favorites', favErr);
-      return NextResponse.json({ error: `DB error (favorites): ${favErr.message}`, code: favErr.code, hint: favErr.hint }, { status: 500 });
-    }
-
-    const candidates = (favs ?? []).map((r) => r.user_id as string);
-    if (candidates.length === 0) {
-      return NextResponse.json({ sent: 0, dead: 0, target_count: 0 });
-    }
-
-    const { data: prefs, error: prefErr } = await supabase
-      .from('user_notification_preferences')
-      .select('user_id')
-      .in('user_id', candidates)
-      .eq('push_enabled', true);
-    if (prefErr) {
-      console.error('[notify] prefs (brand)', prefErr);
-      return NextResponse.json({ error: `DB error (prefs): ${prefErr.message}`, code: prefErr.code, hint: prefErr.hint }, { status: 500 });
-    }
-
-    const { data: disabled } = await supabase
-      .from('user_notification_settings')
-      .select('user_id')
-      .in('user_id', candidates)
-      .eq('brand_id', brandId!)
-      .eq('enabled', false);
-    const disabledSet = new Set((disabled ?? []).map((r) => r.user_id as string));
-
-    userIds = (prefs ?? [])
-      .map((r) => r.user_id as string)
-      .filter((id) => !disabledSet.has(id));
+  try {
+    userIds = await resolveTargetUserIds(supabase, target, brandId);
+  } catch (e) {
+    console.error('[notify] targeting', e);
+    return NextResponse.json(
+      { error: `DB error (targeting): ${e instanceof Error ? e.message : 'unknown'}` },
+      { status: 500 },
+    );
   }
 
   if (userIds.length === 0) {
-    return NextResponse.json({ sent: 0, dead: 0, target_count: 0 });
+    return NextResponse.json({ sent: 0, dead: 0, target_count: 0, user_count: 0, device_count: 0 });
   }
 
   // 2) tokens
@@ -152,6 +114,9 @@ export async function POST(req: NextRequest) {
   const messages: ExpoMessage[] = [];
   const historyRows: Array<Record<string, unknown>> = [];
   const tokensSent: string[] = [];
+  // 알림내역은 유저당 1행만 남긴다. 한 유저가 기기(토큰) 여러 개를 가진 경우
+  // 발송(messages)은 토큰당 유지해 모든 기기에 도달하되, 인앱 알림함에는 중복으로 쌓이지 않게 한다.
+  const historySeenUsers = new Set<string>();
 
   for (const t of rows) {
     messages.push({
@@ -165,15 +130,18 @@ export async function POST(req: NextRequest) {
       },
       sound: 'default',
     });
-    historyRows.push({
-      user_id: t.user_id,
-      brand_id: target === 'brand' ? brandId : null,
-      type: 'marketing',
-      title,
-      body: text,
-      deep_link: deepLink,
-    });
     tokensSent.push(t.expo_push_token);
+    if (!historySeenUsers.has(t.user_id)) {
+      historySeenUsers.add(t.user_id);
+      historyRows.push({
+        user_id: t.user_id,
+        brand_id: target === 'brand' ? brandId : null,
+        type: 'marketing',
+        title,
+        body: text,
+        deep_link: deepLink,
+      });
+    }
   }
 
   if (historyRows.length > 0) {
@@ -220,5 +188,7 @@ export async function POST(req: NextRequest) {
     http_errors: errorMessages.length > 0 ? errorMessages : undefined,
     debug_raw: firstFailedRaw ?? undefined,
     target_count: targetCount,
+    user_count: targetCount,
+    device_count: messages.length,
   });
 }

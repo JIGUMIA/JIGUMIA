@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Pencil, Trash2, X, Check } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, Check, ExternalLink } from 'lucide-react';
 import { computeSaleStatus } from '@/lib/sale-status';
 import type { SaleStatus } from '@/types';
 
@@ -18,6 +18,7 @@ interface SaleEvent {
   start_date: string;
   end_date: string;
   description: string | null;
+  event_url: string | null;
   status: SaleStatus;
   brand: Brand | null;
 }
@@ -34,6 +35,7 @@ const emptyForm = {
   start_date: '',
   end_date: '',
   description: '',
+  event_url: '',
 };
 
 function statusBadge(status: SaleStatus) {
@@ -75,6 +77,7 @@ export default function SaleEventsClient({
       start_date: ev.start_date,
       end_date: ev.end_date,
       description: ev.description ?? '',
+      event_url: ev.event_url ?? '',
     });
     setShowForm(true);
     setError('');
@@ -94,6 +97,7 @@ export default function SaleEventsClient({
     const body = {
       ...form,
       description: form.description || null,
+      event_url: form.event_url || null,
     };
 
     try {
@@ -254,6 +258,17 @@ export default function SaleEventsClient({
                 />
               </div>
 
+              <div>
+                <label className="block text-sm text-slate-400 mb-1">이벤트 페이지 URL</label>
+                <input
+                  type="url"
+                  value={form.event_url}
+                  onChange={(e) => setForm({ ...form, event_url: e.target.value })}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500"
+                  placeholder="https://brand.com/event/summer-sale"
+                />
+              </div>
+
               {error && <p className="text-red-400 text-sm">{error}</p>}
 
               <div className="flex gap-3 pt-2">
@@ -300,7 +315,22 @@ export default function SaleEventsClient({
                     <span className="text-slate-300">{ev.brand?.name ?? '-'}</span>
                   </div>
                 </td>
-                <td className="px-4 py-3 text-white font-medium">{ev.title}</td>
+                <td className="px-4 py-3 text-white font-medium">
+                  <div className="flex items-center gap-1.5">
+                    {ev.title}
+                    {ev.event_url && (
+                      <a
+                        href={ev.event_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-slate-500 hover:text-indigo-400 transition-colors"
+                        title={ev.event_url}
+                      >
+                        <ExternalLink size={12} />
+                      </a>
+                    )}
+                  </div>
+                </td>
                 <td className="px-4 py-3 text-slate-400 text-xs">
                   {ev.start_date} ~ {ev.end_date}
                 </td>

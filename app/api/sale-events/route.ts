@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const body = await req.json();
-  const { brand_id, title, start_date, end_date, description } = body;
+  const { brand_id, title, start_date, end_date, description, event_url } = body;
 
   if (!brand_id || !title || !start_date || !end_date) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from('sale_events')
-    .insert({ brand_id, title, start_date, end_date, description, status })
+    .insert({ brand_id, title, start_date, end_date, description, event_url: event_url || null, status })
     .select()
     .single();
 

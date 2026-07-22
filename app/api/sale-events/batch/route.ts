@@ -33,6 +33,7 @@ export async function POST(req: NextRequest) {
         end_date: e.end_date,
         discount_rate: e.discount_rate ?? null,
         description: e.description ?? null,
+        event_url: e.event_url ?? null,
         status: computeSaleStatus(e.start_date as string, e.end_date as string),
       }))
     )

@@ -21,6 +21,8 @@ export interface SaleEvent {
   end_date: string;
   discount_rate: string | null;
   description: string | null;
+  event_url: string | null;
+  image_url: string | null;
   status: SaleStatus;
   created_at: string;
   brand?: Brand;

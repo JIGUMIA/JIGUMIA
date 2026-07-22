@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // 로컬 에이전트 워크트리 — 레포 소스가 아니므로 검사하지 않는다.
+    ".claude/worktrees/**",
   ]),
 ]);
 
