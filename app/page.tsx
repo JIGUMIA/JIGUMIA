@@ -86,7 +86,7 @@ const SHOWCASE_COPY = [
  */
 function StoreButtons() {
   return (
-    <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
+    <div className="flex flex-col items-center justify-center gap-6 sm:flex-row">
       <a
         href={APP_STORE_URL}
         target="_blank"
@@ -166,22 +166,16 @@ export default async function LandingPage() {
           <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.45em] text-white/55">
             JIGUMIA
           </p>
-          <h1 className="text-5xl font-black leading-[1.15] tracking-tight text-white/85 md:text-6xl">
+          <h1 className="text-5xl font-black leading-[1.15] tracking-tight text-white md:text-6xl">
             지금이야!
           </h1>
-          <p className="mt-4 text-base font-medium text-white/70">
+          <p className="mt-4 text-base font-medium text-white/75 md:text-lg">
             놓치면 아까운 세일, 딱 맞게 알려줄게
           </p>
 
-          <h2 className="mt-14 text-4xl font-black leading-[1.25] tracking-tight md:text-5xl">
-            세일 기간을 놓친
-            <br />
-            당신을 위한 앱
-          </h2>
-
-          <p className="mx-auto mt-6 max-w-md text-[15px] leading-relaxed text-white/75">
-            올리브영, 무신사, 29cm 등 주요 브랜드의 할인 일정을
-            <br className="hidden sm:block" /> 캘린더 하나로 모아 보고, 시작 전 알림을 받아보세요.
+          <p className="mx-auto mt-10 max-w-xl text-[15px] leading-relaxed text-white/75 md:text-base">
+            올리브영, 무신사, 29cm 등 주요 브랜드의 할인 일정을 캘린더 하나로 모아 보고,
+            <br className="hidden md:block" /> 세일 시작 전 알림을 받아보세요.
           </p>
 
           <div className="mt-10">
@@ -202,8 +196,8 @@ export default async function LandingPage() {
               <div className="flex shrink-0 justify-center">
                 <PhoneFrame>{s.screen}</PhoneFrame>
               </div>
-              <div className="max-w-md text-center lg:text-left">
-                <h3 className="text-3xl font-black leading-snug tracking-tight text-[#2A2450] md:text-[2rem]">
+              <div className="max-w-lg text-center lg:text-left">
+                <h3 className="text-[1.75rem] font-black leading-snug tracking-tight text-[#2A2450] md:text-[2rem]">
                   {s.headline}
                 </h3>
                 <p className="mt-5 text-[15px] leading-[1.85] text-[#4A4470]">{s.body}</p>

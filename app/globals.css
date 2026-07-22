@@ -6,6 +6,9 @@
 
 body {
   margin: 0;
+  /* 한글은 기본값(break-word)이면 어절 중간에서 잘린다. 어절 단위로만 줄바꿈. */
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 /* 지원 브랜드 마퀴 — 목록을 두 벌 이어 붙였으므로 절반만큼 밀면 이음매가 없다. */
