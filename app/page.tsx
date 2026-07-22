@@ -73,33 +73,43 @@ const SHOWCASE_COPY = [
   },
 ];
 
-function StoreButtons({ dark = false }: { dark?: boolean }) {
-  const cls = dark
-    ? 'bg-white text-[#111111]'
-    : 'bg-[#111111] text-white';
+/**
+ * 스토어 배지.
+ *
+ * Apple / Google 모두 공식 배지 아트워크를 변형 없이 사용하도록 요구한다
+ * (자체 제작 버튼·로고 재현 금지). public/badges 의 파일은 각사 공식 배포처에서
+ * 받은 원본이며, 여기서는 크기만 지정한다.
+ *
+ * 여백 규정: 배지 높이의 1/4 이상을 사방에 비워야 하므로 gap 을 넉넉히 둔다.
+ * Apple SVG 는 아트워크가 곧 배지지만 Google PNG 는 상하 투명 여백을 포함해서,
+ * 검은 알약 높이를 맞추려면 Google 쪽을 조금 더 크게 잡아야 한다.
+ */
+function StoreButtons() {
   return (
-    <div className="flex flex-col justify-center gap-3 sm:flex-row">
+    <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
       <a
         href={APP_STORE_URL}
         target="_blank"
         rel="noopener noreferrer"
-        className={`flex items-center justify-center gap-2 rounded-2xl px-8 py-3.5 text-sm font-semibold transition-transform hover:scale-[1.03] ${cls}`}
+        aria-label="App Store에서 다운로드"
+        className="transition-opacity hover:opacity-85"
       >
-        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor">
-          <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" />
-        </svg>
-        App Store
+        {/* eslint-disable-next-line @next/next/no-img-element -- 공식 배지 원본을 그대로 사용 */}
+        <img src="/badges/app-store-ko.svg" alt="App Store에서 다운로드" className="h-[52px] w-auto" />
       </a>
       <a
         href={PLAY_STORE_URL}
         target="_blank"
         rel="noopener noreferrer"
-        className={`flex items-center justify-center gap-2 rounded-2xl px-8 py-3.5 text-sm font-semibold transition-transform hover:scale-[1.03] ${cls}`}
+        aria-label="Google Play에서 다운로드"
+        className="transition-opacity hover:opacity-85"
       >
-        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor">
-          <path d="M3.18 23.76c.3.17.64.24.99.2l.09-.05 11.04-6.38-2.36-2.36-9.76 8.59zm-1.85-20.4A1.99 1.99 0 001 5v14c0 .57.24 1.09.62 1.46l.08.07 7.83-7.83v-.18L1.33 3.36zm19.44 8.39l-2.63-1.52-2.65 2.65 2.65 2.65 2.65-1.54c.75-.44.75-1.7-.02-2.24zM4.17.28L15.21 6.6l-2.36 2.36-9.76-8.6a1.07 1.07 0 00-.92-.08z" />
-        </svg>
-        Google Play
+        {/* eslint-disable-next-line @next/next/no-img-element -- 공식 배지 원본을 그대로 사용 */}
+        <img
+          src="/badges/google-play-ko.png"
+          alt="Google Play에서 다운로드"
+          className="h-[68px] w-auto"
+        />
       </a>
     </div>
   );
@@ -175,7 +185,7 @@ export default async function LandingPage() {
           </p>
 
           <div className="mt-10">
-            <StoreButtons dark />
+            <StoreButtons />
           </div>
         </div>
       </section>
@@ -249,7 +259,7 @@ export default async function LandingPage() {
             다운로드 하세요
           </h2>
           <div className="mt-10">
-            <StoreButtons dark />
+            <StoreButtons />
           </div>
         </div>
       </section>
