@@ -7,3 +7,19 @@
 body {
   margin: 0;
 }
+
+/* 지원 브랜드 마퀴 — 목록을 두 벌 이어 붙였으므로 절반만큼 밀면 이음매가 없다. */
+@keyframes brand-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(-50% - 0.3125rem)); /* 사본 사이 gap(2.5) 절반 보정 */
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brand-marquee [style*="brand-scroll"] {
+    animation: none !important;
+  }
+}

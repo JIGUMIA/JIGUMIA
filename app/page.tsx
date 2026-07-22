@@ -9,7 +9,9 @@ import {
   BrandsScreen,
   DetailScreen,
 } from '@/components/site/PhoneMock';
-import { getLandingData } from '@/lib/site/landing-data';
+import { BrandMarquee } from '@/components/site/BrandMarquee';
+import { getLandingBrands } from '@/lib/site/landing-data';
+import { getMockScreens } from '@/lib/site/mock-screens';
 
 export const metadata: Metadata = {
   title: 'JIGUMIA (지구미아) — 브랜드 세일 캘린더',
@@ -104,21 +106,21 @@ function StoreButtons({ dark = false }: { dark?: boolean }) {
 }
 
 export default async function LandingPage() {
-  const data = await getLandingData();
+  // 앱 목업은 가상 데이터, "지원 브랜드" 목록만 실제 DB에서 가져온다.
+  const brands = await getLandingBrands();
+  const mock = getMockScreens();
   const screens = [
-    <HomeScreen key="home" events={data.homeEvents} />,
+    <HomeScreen key="home" events={mock.homeEvents} />,
     <CalendarScreen
       key="cal"
-      weeks={data.weeks}
-      monthLabel={data.monthLabel}
-      todayDate={data.today.getUTCDate()}
+      weeks={mock.weeks}
+      monthLabel={mock.monthLabel}
+      todayDate={mock.todayDate}
     />,
-    <BrandsScreen key="brands" rows={data.brandRows} total={data.brandTotal} />,
-    data.featured ? <DetailScreen key="detail" event={data.featured} /> : null,
+    <BrandsScreen key="brands" rows={mock.brandRows} total={mock.brandTotal} />,
+    <DetailScreen key="detail" event={mock.featured} />,
   ];
-  const showcase = SHOWCASE_COPY.map((c, i) => ({ ...c, screen: screens[i] })).filter(
-    (s) => s.screen !== null
-  );
+  const showcase = SHOWCASE_COPY.map((c, i) => ({ ...c, screen: screens[i] }));
 
   return (
     <div className="min-h-screen bg-[#FAFAF8]">
@@ -221,39 +223,14 @@ export default async function LandingPage() {
       </section>
 
       {/* Brands */}
-      <section className="bg-white py-20">
+      <section className="overflow-hidden bg-white py-20">
         <div className="mx-auto max-w-5xl px-6 text-center">
           <h2 className="mb-3 text-3xl font-black text-[#111111]">지원 브랜드</h2>
           <p className="mb-12 text-sm text-gray-400">
-            현재 {data.brandTotal}개 브랜드 · 계속 추가되고 있어요
+            현재 {brands.length}개 브랜드 · 계속 추가되고 있어요
           </p>
-          <div className="flex flex-wrap justify-center gap-2.5">
-            {data.brands.map((b) => (
-              <span
-                key={b.id}
-                className="flex items-center gap-2 rounded-full border border-gray-100 bg-white py-2 pl-2 pr-4 text-sm font-semibold text-[#111111] shadow-sm"
-              >
-                {b.logo_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element -- 외부 CDN 로고
-                  <img
-                    src={b.logo_url}
-                    alt=""
-                    className="h-6 w-6 rounded-md object-contain"
-                    loading="lazy"
-                  />
-                ) : (
-                  <span
-                    className="flex h-6 w-6 items-center justify-center rounded-md text-[11px] font-extrabold text-white"
-                    style={{ backgroundColor: b.color }}
-                  >
-                    {b.name.slice(0, 1)}
-                  </span>
-                )}
-                {b.name}
-              </span>
-            ))}
-          </div>
         </div>
+        <BrandMarquee brands={brands} />
       </section>
 
       {/* CTA — 홍보물 06-cta */}
@@ -309,9 +286,6 @@ export default async function LandingPage() {
             </Link>
             <Link href="/delete-account" className="transition-colors hover:text-gray-600">
               계정 삭제
-            </Link>
-            <Link href="/login" className="transition-colors hover:text-gray-600">
-              관리자
             </Link>
           </div>
         </div>

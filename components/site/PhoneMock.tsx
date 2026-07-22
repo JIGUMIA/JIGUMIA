@@ -15,7 +15,7 @@ import {
   Apple,
   Smartphone,
 } from 'lucide-react';
-import type { LandingBrand, LandingData } from '@/lib/site/landing-data';
+import type { MockBrand, MockScreens } from '@/lib/site/mock-screens';
 
 /** JIGUMIA 앱 디자인 토큰 (JIGUMIA/src/constants/colors.ts 기준) */
 const INK = '#191F28';
@@ -81,7 +81,7 @@ function BrandLogo({
   size = 34,
   radius = 9,
 }: {
-  brand: LandingBrand;
+  brand: MockBrand;
   size?: number;
   radius?: number;
 }) {
@@ -129,7 +129,7 @@ const CATEGORIES = [
   { label: '전자기기', Icon: Smartphone, bg: '#E6F1FF', fg: '#3B82F6' },
 ];
 
-export function HomeScreen({ events }: { events: LandingData['homeEvents'] }) {
+export function HomeScreen({ events }: { events: MockScreens['homeEvents'] }) {
   return (
     <div className="relative h-full">
       <ScreenHeader title="지금이야" />
@@ -217,7 +217,7 @@ export function CalendarScreen({
   monthLabel,
   todayDate,
 }: {
-  weeks: LandingData['weeks'];
+  weeks: MockScreens['weeks'];
   monthLabel: string;
   todayDate: number;
 }) {
@@ -322,7 +322,7 @@ export function BrandsScreen({
   rows,
   total,
 }: {
-  rows: LandingData['brandRows'];
+  rows: MockScreens['brandRows'];
   total: number;
 }) {
   return (
@@ -387,7 +387,7 @@ function formatKorean(date: string) {
   return `${m}월 ${d}일 (${day})`;
 }
 
-export function DetailScreen({ event }: { event: NonNullable<LandingData['featured']> }) {
+export function DetailScreen({ event }: { event: MockScreens['featured'] }) {
   const badge = daysLeftLabel(event.daysLeft);
   const pct = Math.round(event.progress * 100);
 
