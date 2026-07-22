@@ -11,34 +11,9 @@ export const meta = {
 // ─── 메인 세션이 실행 전에 Edit 툴로 직접 설정하는 상수 ──────────────────────
 // args가 named workflow에서 전달되지 않는 버그 우회책.
 // CLAUDE.md "Daily Sale Maintenance" 참조.
-const TODAY = '2026-07-22'              // 실행 전 메인 세션이 오늘 날짜로 교체
-const URGENCY_THRESHOLD = '2026-07-25' // 실행 전 메인 세션이 today+3일로 교체
-const PREV_CHECKED_IDS = [
-  "b70faa58-df73-4444-a290-8a4e20f193c6",
-  "c8dddb43-897c-48a5-8e90-a40cfd7dbd73",
-  "3c9b76d7-c48e-4d39-9cba-8c8958603632",
-  "aa7cadac-a919-413f-b078-8326c058cf3c",
-  "69671bd7-d780-42d0-8534-d077b1ffc6e0",
-  "856865be-bea5-4675-8f0d-a2e7934dcd3f",
-  "dc55ca85-1b3a-49db-80cd-4a1a045ed411",
-  "8b06a98c-eb2b-4d91-bc7d-1f09c4e2cbf1",
-  "86787592-4ef2-49aa-b52e-a852e9bc2610",
-  "bcf20c21-1686-4d1a-bbc2-f566203ac537",
-  "e674f016-e89e-467c-98ba-d61840a51b76",
-  "f8ea93e7-4c73-40e5-8e1c-0af011761bf9",
-  "783765cf-c2a8-42fd-b655-e2e94311a58c",
-  "e170a0a3-1a18-45b9-a277-e3946b2e4aca",
-  "28069732-a4bc-4316-85ed-fb200519e0cd",
-  "a771129f-0a25-46e1-a904-786dfaa57d3b",
-  "d33f9d1b-cb5a-4f8f-aeef-63aab06119ef",
-  "ce9bf12f-4a8b-4123-b286-5e8f6ab2309e",
-  "067f4d68-007e-4d4b-b709-0dd7b4f3794e",
-  "742f14fe-fc93-4b5c-98f9-de8ba631d62f",
-  "3eea9ec2-daf0-4006-b7fb-842b247fcd6e",
-  "a50790b9-9d7a-492c-ad69-91e5b06c767f",
-  "b60a1467-84a0-48d6-9ff2-54be5a5e8b95",
-  "09e31825-cb81-4cff-b6f0-d7d43a89b491"
-]            // 실행 전 메인 세션이 포인터 파일의 배열로 교체
+const TODAY = 'YYYY-MM-DD'              // 실행 전 메인 세션이 오늘 날짜로 교체
+const URGENCY_THRESHOLD = 'YYYY-MM-DD' // 실행 전 메인 세션이 today+3일로 교체
+const PREV_CHECKED_IDS = []            // 실행 전 메인 세션이 포인터 파일의 배열로 교체
 // ─────────────────────────────────────────────────────────────────────────────
 
 const BATCH_SIZE = 12

@@ -94,7 +94,7 @@ const SHOWCASE_COPY = [
  */
 function StoreButtons() {
   return (
-    <div className="flex flex-col items-center justify-center gap-6 sm:flex-row">
+    <div className="flex flex-row items-center justify-center gap-4 sm:gap-6">
       <a
         href={APP_STORE_URL}
         target="_blank"
@@ -103,7 +103,11 @@ function StoreButtons() {
         className="transition-opacity hover:opacity-85"
       >
         {/* eslint-disable-next-line @next/next/no-img-element -- 공식 배지 원본을 그대로 사용 */}
-        <img src="/badges/app-store-ko.svg" alt="App Store에서 다운로드" className="h-[52px] w-auto" />
+        <img
+          src="/badges/app-store-ko.svg"
+          alt="App Store에서 다운로드"
+          className="h-11 w-auto sm:h-[52px]"
+        />
       </a>
       <a
         href={PLAY_STORE_URL}
@@ -116,7 +120,7 @@ function StoreButtons() {
         <img
           src="/badges/google-play-ko.png"
           alt="Google Play에서 다운로드"
-          className="h-[68px] w-auto"
+          className="h-[58px] w-auto sm:h-[68px]"
         />
       </a>
     </div>
